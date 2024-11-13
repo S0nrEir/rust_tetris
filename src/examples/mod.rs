@@ -1,1 +1,0 @@
-﻿pub mod mod_02_hello_world;
