@@ -1,5 +1,9 @@
 mod examples;
+mod procedure;
+mod t_state;
+mod constant;
 
 fn main() {
-    examples::example_02_enter();
+    println!("my tetris game!");
+    // examples::example_02_enter();
 }

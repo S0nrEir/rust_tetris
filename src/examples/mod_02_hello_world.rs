@@ -25,7 +25,7 @@ impl MainState {
 // that you can override if you wish, but the defaults are fine.
 impl event::EventHandler<ggez::GameError> for MainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        Ok(())
+        return Ok(());
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -53,17 +53,9 @@ impl event::EventHandler<ggez::GameError> for MainState {
     }
 }
 
-// Now our main function, which does three things:
-//
-// * First, create a new `ggez::ContextBuilder`
-// object which contains configuration info on things such
-// as screen resolution and window title.
-// * Second, create a `ggez::game::Game` object which will
-// do the work of creating our MainState and running our game.
-// * Then, just call `game.run()` which runs the `Game` mainloop.
+
 pub fn main_enter() -> GameResult {
-    // We add the CARGO_MANIFEST_DIR/resources to the resource paths
-    // so that ggez will look in our cargo project directory for files.
+
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
         path.push("resource");
