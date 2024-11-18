@@ -26,10 +26,10 @@
         println!("{} : {}",format!("{:?}",sender).yellow(), msg.yellow());
     }
     fn log_error<T:Debug>(sender:T,msg:&str){
-        println!("{} : {}",format!("{:?}",sender).red(), msg.red());
+        println!("{} : {}",format!("{:?}",sender).bright_red(), msg.red());
     }
     fn log_fatal<T:Debug>(sender:T,msg:&str){
-        println!("{} : {}",format!("{:?}",sender).bright_red(), msg.bright_red());
+        println!("{} : {}",format!("{:?}",sender).red(), msg.bright_red());
     }    
     
     #[derive(IntoPrimitive)]
