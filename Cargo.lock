@@ -2003,6 +2003,7 @@ name = "rust_tetris"
 version = "0.1.0"
 dependencies = [
  "ggez",
+ "num_enum 0.7.3",
 ]
 
 [[package]]
