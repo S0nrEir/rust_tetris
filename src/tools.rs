@@ -29,8 +29,8 @@
         println!("{} : {}",format!("{:?}",sender).bright_red(), msg.red());
     }
     fn log_fatal<T:Debug>(sender:T,msg:&str){
-        println!("{} : {}",format!("{:?}",sender).red(), msg.bright_red());
-    }    
+        panic!("{} : {}",format!("{:?}",sender).red(), msg.bright_red());
+    }
     
     #[derive(IntoPrimitive)]
     #[repr(i32)]
