@@ -8,8 +8,7 @@ use crate::t_state::StateEnum::ProcedureEnum;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
 
-/// 流程组件，用于控制流程 /
-/// procedure component, used to control procedure
+/// 流程组件，用于控制流程 / procedure component, used to control procedure
 #[derive(Debug)]
 pub struct ProcedureComponent{
     ///当前流程 / current procedure
