@@ -1,7 +1,9 @@
 ﻿use crate::t_state::TState;
+use crate::t_state::StateEnum::ProcedureEnum;
 
 ///主UI流程 / 
 /// main UI procedure
+#[derive(Debug)]
 pub struct ProcedureMainUI{
 }
 
@@ -20,10 +22,13 @@ impl TState for ProcedureMainUI{
     fn on_leave(&self) {
         println!("ProcedureMainUI exit");
     }
+    
+    fn get_state(&self) -> ProcedureEnum {
+        return ProcedureEnum::MainUI;
+    }
 }
 
 impl ProcedureMainUI {
-    
     ///constructor
     pub fn new() -> Self {
         return ProcedureMainUI{};
