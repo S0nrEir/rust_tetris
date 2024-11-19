@@ -12,7 +12,8 @@ mod define;
 
 use tools::Logger::*;
 
+
 fn main() {
-    log("", "start", LogLevelEnum::Info);
+    
     // examples::example_02_enter();
 }
