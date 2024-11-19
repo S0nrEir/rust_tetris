@@ -1,5 +1,5 @@
 ﻿use crate::t_state::TState;
-use crate::t_state::StateEnum::ProcedureEnum;
+use crate::define::enum_define::ProcedureEnum;
 
 ///游戏结束，结算，重开
 /// game over, settlement, restart

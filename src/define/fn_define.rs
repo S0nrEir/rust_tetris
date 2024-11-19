@@ -1,0 +1,1 @@
+﻿pub type Void_CallBack = fn();

@@ -5,15 +5,14 @@ mod constant;
 mod entry;
 mod tools;
 mod test;
+mod input;
+mod event;
+mod t_updatable;
+mod define;
 
-use std::rc::Rc;
-use crate::procedure::procedure_main_ui;
-use crate::procedure::procedure_playing;
-use crate::procedure::procedure_over;
-use crate::procedure::ProcedureComponent;
-use crate::t_state::StateEnum;
+use tools::Logger::*;
 
 fn main() {
-    
+    log("", "start", LogLevelEnum::Info);
     // examples::example_02_enter();
 }

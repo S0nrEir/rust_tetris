@@ -1,5 +1,5 @@
 ﻿use crate::t_state::TState;
-use crate::t_state::StateEnum::ProcedureEnum;
+use crate::define::enum_define::ProcedureEnum;
 
 ///主UI流程 / 
 /// main UI procedure

@@ -1,7 +1,5 @@
-﻿pub mod StateEnum;
-
-use std::fmt::Debug;
-use StateEnum::ProcedureEnum;
+﻿use std::fmt::Debug;
+use crate::define::enum_define::ProcedureEnum;
 
 ///一个简易的状态 / 
 /// A simple state

@@ -5,7 +5,7 @@ mod test_procedure{
     use crate::procedure::{procedure_main_ui, ProcedureComponent};
     use crate::procedure::procedure_playing;
     use crate::procedure::procedure_over;
-    use crate::t_state::StateEnum;
+    use crate::define::enum_define;
     use crate::tools::Logger::*;
     
     #[test]
@@ -18,9 +18,9 @@ mod test_procedure{
                 Some(Rc::new(procedure_over::ProcedureOver::new()))]
         );
 
-        procedure_comp.switch(StateEnum::ProcedureEnum::Playing);
-        procedure_comp.switch(StateEnum::ProcedureEnum::Over);
-        procedure_comp.switch(StateEnum::ProcedureEnum::MainUI);
+        procedure_comp.switch(enum_define::ProcedureEnum::Playing);
+        procedure_comp.switch(enum_define::ProcedureEnum::Over);
+        procedure_comp.switch(enum_define::ProcedureEnum::MainUI);
         log("test_procedure","test procedure",LogLevelEnum::Info);
     }
 }

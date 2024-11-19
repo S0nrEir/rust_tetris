@@ -4,9 +4,11 @@ pub mod procedure_over;
 
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::t_state::StateEnum::ProcedureEnum;
+use crate::define::enum_define::ProcedureEnum;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
+use crate::t_updatable;
+use crate::t_updatable::Updatable;
 
 /// 流程组件，用于控制流程 / procedure component, used to control procedure
 #[derive(Debug)]
@@ -55,7 +57,7 @@ impl ProcedureComponent {
     }
     
     /// 添加一个已存在的流程 / add an existing procedure
-    pub fn add_exist_procedure(&mut self,procedure:Option<Rc<dyn TState>>) -> Result<(),String>{
+    fn add_exist_procedure(&mut self,procedure:Option<Rc<dyn TState>>) -> Result<(),String>{
         if(procedure.is_none()){
             return Err(String::from("procedure is none"));
         }
@@ -127,5 +129,11 @@ impl ProcedureComponent {
         }
         self._current_procedure = Some(Rc::clone(self._procedure_map.get(&procedure_type).unwrap()));
         self._current_procedure.as_ref().unwrap().on_enter();
+    }
+}
+
+impl Updatable for ProcedureComponent{
+    fn on_update(&self) {
+        todo!()
     }
 }
