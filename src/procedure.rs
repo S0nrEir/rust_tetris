@@ -7,7 +7,6 @@ use std::rc::Rc;
 use crate::define::enum_define::ProcedureEnum;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
-use crate::t_updatable;
 use crate::t_updatable::Updatable;
 
 /// 流程组件，用于控制流程 / procedure component, used to control procedure
@@ -83,18 +82,19 @@ impl ProcedureComponent {
             log(self,"procedure already exists",LogLevelEnum::Info);
             return false;
         }
+        let mut insert_succ : Option<Rc<dyn TState>> = None;
         match procedure_enum {
             ProcedureEnum::MainUI => {
-                self._procedure_map.insert(enum_type,Rc::new(procedure_main_ui::ProcedureMainUI::new()));
+                insert_succ = self._procedure_map.insert(enum_type,Rc::new(procedure_main_ui::ProcedureMainUI::new()));
             },
             ProcedureEnum::Playing => {
-                self._procedure_map.insert(enum_type,Rc::new(procedure_playing::ProcedurePlaying::new()));
+                insert_succ = self._procedure_map.insert(enum_type,Rc::new(procedure_playing::ProcedurePlaying::new()));
             },
             ProcedureEnum::Over => {
-                self._procedure_map.insert(enum_type,Rc::new(procedure_over::ProcedureOver::new()));
+                insert_succ = self._procedure_map.insert(enum_type,Rc::new(procedure_over::ProcedureOver::new()));
             },
         }
-        return true;
+        return insert_succ.is_some();
     }
     
     /// 切换流程 / switch procedure
