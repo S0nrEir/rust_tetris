@@ -22,11 +22,11 @@ use app::App;
 fn main() {
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
-        path.push("resources");
+        path.push("resource");
         path
     } 
     else {
-        path::PathBuf::from("./resources")
+        path::PathBuf::from("./resource")
     };
 
     //context对象包含与硬件交互的的所有状态

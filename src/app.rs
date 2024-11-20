@@ -1,7 +1,9 @@
-﻿use ggez::{event,graphics::{self},Context, GameResult};
+﻿use std::fmt;
+use ggez::{event, graphics::{self}, Context, GameResult};
 use crate::tools::Logger::*;
 
 /// 游戏的主入口 / Main entry of the game
+// #[derive(Debug)]
 pub struct App {
     frames: usize,
 }
@@ -11,7 +13,7 @@ impl App {
     pub fn new(ctx: &mut Context) -> GameResult<App> {
         ctx.gfx.add_font(
             "consola",
-            graphics::FontData::from_path(ctx, "/consola.ttf")?,
+            graphics::FontData::from_path(ctx, "/font/consola.ttf")?,
         );
 
         let s = App { frames: 0 };
@@ -33,9 +35,16 @@ impl event::EventHandler<ggez::GameError> for App {
         canvas.finish(ctx)?;
         self.frames += 1;
         if (self.frames % 100) == 0 {
-            log("MainState", &format!("FPS: {}",ctx.time.fps()), LogLevelEnum::Info);
+            log(&self, &format!("FPS: {}",ctx.time.fps()), LogLevelEnum::Info);
         }
 
         return Ok(());
     }
+}
+
+impl fmt::Debug for App {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "App")
+    }
+    
 }
