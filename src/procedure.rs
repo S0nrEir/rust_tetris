@@ -67,8 +67,13 @@ impl ProcedureComponent {
             return Err(err_msg);
         }
         
-        self._procedure_map.insert(enum_type,Rc::clone(procedure.as_ref().unwrap()));
-        return Ok(());
+        let insert_succ = self._procedure_map.insert(enum_type,Rc::clone(procedure.as_ref().unwrap()));
+        if let Some(_) = insert_succ {
+            return Ok(());
+        }
+        else{
+            return Err(String::from("insert failed,option is none"));
+        }
     }
     
     /// 添加一个流程 / add a procedure
