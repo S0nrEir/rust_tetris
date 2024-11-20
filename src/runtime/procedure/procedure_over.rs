@@ -19,7 +19,6 @@ impl TState for ProcedureOver{
     }
 
     fn on_leave(&self) {
-        println!("ProcedureOver exit");
     }
     
     fn get_state(&self) -> ProcedureEnum {
