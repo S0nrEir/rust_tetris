@@ -2,9 +2,7 @@
 #[cfg(test)]
 mod test_procedure{
     use std::rc::Rc;
-    use crate::procedure::{procedure_main_ui, ProcedureComponent};
-    use crate::procedure::procedure_playing;
-    use crate::procedure::procedure_over;
+    use crate::runtime::procedure::*;
     use crate::define::enum_define;
     use crate::tools::Logger::*;
     
