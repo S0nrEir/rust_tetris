@@ -6,6 +6,7 @@ pub struct App {
     frames: usize,
 }
 
+//实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
 impl App {
     pub fn new(ctx: &mut Context) -> GameResult<App> {
         ctx.gfx.add_font(
@@ -13,7 +14,7 @@ impl App {
             graphics::FontData::from_path(ctx, "/consola.ttf")?,
         );
 
-        let s = MainState { frames: 0 };
+        let s = App { frames: 0 };
         return Ok(s);
     }
 }
