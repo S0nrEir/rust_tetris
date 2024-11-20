@@ -1,13 +1,13 @@
 ﻿use ggez::{event,graphics::{self},Context, GameResult};
 use crate::tools::Logger::*;
 
-///游戏状态 / MainState
-pub struct MainState {
+/// 游戏的主入口 / Main entry of the game
+pub struct App {
     frames: usize,
 }
 
-impl MainState {
-    pub fn new(ctx: &mut Context) -> GameResult<MainState> {
+impl App {
+    pub fn new(ctx: &mut Context) -> GameResult<App> {
         ctx.gfx.add_font(
             "consola",
             graphics::FontData::from_path(ctx, "/consola.ttf")?,
@@ -18,7 +18,7 @@ impl MainState {
     }
 }
 
-impl event::EventHandler<ggez::GameError> for MainState {
+impl event::EventHandler<ggez::GameError> for App {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
         return Ok(())
     }

@@ -6,7 +6,7 @@ mod test;
 mod t_updatable;
 mod define;
 mod runtime;
-mod main_state;
+mod app;
 
 use std::{env, path};
 use crate::tools::Logger::*;
@@ -16,7 +16,7 @@ use ggez::{
     graphics::{self, Color},
     Context, GameResult,
 };
-use main_state::MainState;
+use app::App;
 
 
 fn main() {
@@ -29,6 +29,7 @@ fn main() {
         path::PathBuf::from("./resources")
     };
 
+    //context对象包含与硬件交互的的所有状态
     let context_builder = ggez::ContextBuilder::new("rust_tetris", "yhc")
         .add_resource_path(resource_dir);
     let build_result = context_builder.build();
@@ -44,7 +45,7 @@ fn main() {
         }
     }
     
-    let state = MainState::new(&mut context).unwrap();
+    let state = App::new(&mut context).unwrap();
     event::run(context, event_loop, state);
 
 }
