@@ -1,27 +1,83 @@
-﻿use std::fmt;
+﻿use std::{env, fmt, path};
+use std::io::Error;
+use std::path::{Path, PathBuf};
 use ggez::{event, graphics::{self}, Context, GameResult};
+use ggez::event::EventLoop;
 use crate::tools::Logger::*;
+use crate::constant;
+use crate::constant::{APP_AUTHOR_NAME, APP_GAME_ID};
+
 
 /// 游戏的主入口 / Main entry of the game
 // #[derive(Debug)]
 pub struct App {
+    ///帧率 / Frame rate
     frames: usize,
 }
 
 //实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
 impl App {
+    
+    /// 启动 / Start
+    pub fn start(){
+        let context_builder = ggez::ContextBuilder::new(APP_GAME_ID, APP_AUTHOR_NAME).add_resource_path(Self::get_config_resource_dir());
+        //get context builder & build app
+        if let Ok((mut context, event_loop)) = context_builder.build() {
+            if let Ok(app) = App::new(&mut context) {
+                event::run(context, event_loop,app);
+            }
+        }
+    }
+    
+    //-------------instance method----------------
+    /// 创建一个新的EventHandler实例 / Create a new EventHandler instance
+    /// # Arguments
+    /// * `ctx` - 上下文对象 / Context object
+    /// # Return
+    /// * `GameResult<App>` - App实例 / App instance
     pub fn new(ctx: &mut Context) -> GameResult<App> {
+        Self::init_config_font(ctx);
+        let app = Self::init_config_app();
+        return Ok(app);
+    }
+    
+    /// 游戏入口初始化配置 / Game entry initialization configuration
+    fn init_config_app() -> Self{
+        let app = App { frames: 0 };
+        return  app;
+    }
+    
+    /// 字体初始化配置 / Font initialization configuration
+    /// # Arguments
+    /// * `ctx` - 上下文对象 / Context object
+    fn init_config_font(ctx : &mut Context) -> GameResult<()>{
         ctx.gfx.add_font(
-            "consola",
-            graphics::FontData::from_path(ctx, "/font/consola.ttf")?,
+            constant::FONT_NAME,
+            graphics::FontData::from_path(ctx, constant::FONT_ASSET_PATH)?
         );
-
-        let s = App { frames: 0 };
-        return Ok(s);
+        return Ok(());
+    }
+    
+    /// 获取初始化资源配置目录 / Get the initialized resource configuration directory
+    /// # Return
+    /// * `PathBuf` - 指定的资源目录 / Specified resource directory
+    fn get_config_resource_dir() -> PathBuf{
+        if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+            let mut path = path::PathBuf::from(manifest_dir);
+            path.push(constant::RESOURCE_DIR);
+            return path;
+        } 
+        else {
+            let base_path = Path::new("./");
+            let resource_path = base_path.join(constant::RESOURCE_DIR);
+            return path::PathBuf::from(resource_path);
+        }
     }
 }
 
+////-------------impl EventHandler----------------
 impl event::EventHandler<ggez::GameError> for App {
+    
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
         return Ok(())
     }
@@ -29,7 +85,7 @@ impl event::EventHandler<ggez::GameError> for App {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_frame(
             ctx, 
-            graphics::Color::from([0.1, 0.2, 0.3, 1.0])
+            graphics::Color::from([0.0, 0.0, 0.0, 1.0])
         );
         
         canvas.finish(ctx)?;
@@ -42,6 +98,7 @@ impl event::EventHandler<ggez::GameError> for App {
     }
 }
 
+//-------------impl Debug----------------
 impl fmt::Debug for App {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "App")
