@@ -13,3 +13,6 @@ pub const RESOURCE_DIR: &str = "resource";
 pub const APP_GAME_ID : &str = "rust_tetris";
 /// 作者 / author
 pub const APP_AUTHOR_NAME : &str = "SonrEir";
+
+///帧率
+pub  const APP_FPS : u32 = 60;

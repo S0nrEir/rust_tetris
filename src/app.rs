@@ -1,18 +1,15 @@
 ﻿use std::{env, fmt, path};
-use std::io::Error;
 use std::path::{Path, PathBuf};
-use ggez::{event, graphics::{self}, Context, GameResult};
-use ggez::event::EventLoop;
+use ggez::{event, graphics::{self}, Context, GameResult, timer};
 use crate::tools::Logger::*;
 use crate::constant;
 use crate::constant::{APP_AUTHOR_NAME, APP_GAME_ID};
 
 
 /// 游戏的主入口 / Main entry of the game
-// #[derive(Debug)]
 pub struct App {
     ///帧率 / Frame rate
-    frames: usize,
+    frames : usize,
 }
 
 //实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
@@ -78,8 +75,14 @@ impl App {
 ////-------------impl EventHandler----------------
 impl event::EventHandler<ggez::GameError> for App {
     
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        return Ok(())
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
+        //主帧循环 / Main frame loop
+        //将每秒钟的帧率限制在60，每过1/60秒更新一次
+        while ctx.time.check_update_time(constant::APP_FPS) {
+            
+        }
+        
+        return  Ok(());
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -103,5 +106,4 @@ impl fmt::Debug for App {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "App")
     }
-    
 }
