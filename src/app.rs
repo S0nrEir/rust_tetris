@@ -4,19 +4,21 @@ use ggez::{event, graphics::{self}, Context, GameResult, timer};
 use crate::tools::Logger::*;
 use crate::constant;
 use crate::constant::{APP_AUTHOR_NAME, APP_GAME_ID};
+use crate::runtime::*;
 
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
     ///帧率 / Frame rate
     frames : usize,
+    
 }
 
 //实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
 impl App {
     
     /// 启动 / Start
-    pub fn start(){
+    pub fn start_up(){
         let context_builder = ggez::ContextBuilder::new(APP_GAME_ID, APP_AUTHOR_NAME).add_resource_path(Self::get_config_resource_dir());
         //get context builder & build app
         if let Ok((mut context, event_loop)) = context_builder.build() {
@@ -92,10 +94,10 @@ impl event::EventHandler<ggez::GameError> for App {
         );
         
         canvas.finish(ctx)?;
-        self.frames += 1;
-        if (self.frames % 100) == 0 {
-            log(&self, &format!("FPS: {}",ctx.time.fps()), LogLevelEnum::Info);
-        }
+        // self.frames += 1;
+        // if (self.frames % 300) == 0 {
+        //     log(&self, &format!("FPS: {}",ctx.time.fps()), LogLevelEnum::Info);
+        // }
 
         return Ok(());
     }

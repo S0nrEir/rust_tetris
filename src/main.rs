@@ -12,5 +12,5 @@ use ggez::{event,glam::*, };
 use app::App;
 
 fn main() {
-    App::start();
+    App::start_up();
 }
