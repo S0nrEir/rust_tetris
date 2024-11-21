@@ -3,16 +3,12 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use ggez::{event, graphics::{self}, Context, GameResult, timer};
 use ggez::conf::WindowMode;
-use ggez::input::gamepad::gilrs::EventType;
-use crate::tools::Logger::*;
 use crate::constant;
 use crate::constant::{APP_AUTHOR_NAME, APP_GAME_ID};
 use crate::runtime::event::EventComponent;
 use crate::runtime::procedure::ProcedureComponent;
 use crate::runtime::input::InputComponent;
-use crate::runtime::procedure;
 use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing};
-use crate::define::enum_define::ProcedureEnum;
 use crate::t_state::TState;
 
 
