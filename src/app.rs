@@ -1,7 +1,7 @@
 ﻿use std::{env, fmt, path};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
-use ggez::{event, graphics::{self}, Context, GameResult, timer};
+use ggez::{event, graphics::{self}, Context, GameResult};
 use ggez::conf::WindowMode;
 use crate::constant;
 use crate::constant::{APP_AUTHOR_NAME, APP_GAME_ID};
