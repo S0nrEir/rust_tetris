@@ -9,3 +9,7 @@ edition = "2021"
 ggez = "0.9.0"
 num_enum = "0.7.3"
 colored = "2.0"
+
+[features]
+# 开启调试代码
+debug_log = []
