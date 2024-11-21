@@ -2,6 +2,7 @@
 pub mod procedure_playing;
 pub mod procedure_over;
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::define::enum_define::ProcedureEnum;
@@ -34,7 +35,7 @@ impl ProcedureComponent {
         };
         
         for item in procedure_vec {
-            let err = match procedure_component.add_exist_procedure(item){
+            match procedure_component.add_exist_procedure(item){
                 Ok(_) => {},
                 Err(err_msg) => { 
                     log(&procedure_component,&err_msg,LogLevelEnum::Error);
@@ -42,8 +43,14 @@ impl ProcedureComponent {
                 },
             };
         }
-
         procedure_component.set_default_procedure(entry_procedure_index);
+        
+        #[cfg(feature = "debug_log")]
+        {
+            let all_procedure = procedure_component.all_procedure_name();
+            log(&procedure_component,&format!("all procedure : {:?}",all_procedure),LogLevelEnum::Info);
+        }
+        
         return procedure_component;
     }
 
@@ -69,12 +76,15 @@ impl ProcedureComponent {
         }
         
         let insert_succ = self._procedure_map.insert(enum_type,Rc::clone(procedure.as_ref().unwrap()));
-        if let Some(_) = insert_succ {
-            return Ok(());
-        }
-        else{
-            return Err(String::from("insert failed,option is none"));
-        }
+        return Ok(());
+        // match insert_succ {
+        //     Some(_) => {
+        //         return Ok(());
+        //     },
+        //     None => {
+        //         return Err(String::from("insert failed,option is none"));
+        //     },
+        // }
     }
     
     /// 添加一个流程 / add a procedure
@@ -133,8 +143,30 @@ impl ProcedureComponent {
             log(self,&format!("set default procedure faild,proc type : {}",procedure_type),LogLevelEnum::Error);
             return;
         }
+        let temp = Rc::clone(self._procedure_map.get(&procedure_type).unwrap());
         self._current_procedure = Some(Rc::clone(self._procedure_map.get(&procedure_type).unwrap()));
         self._current_procedure.as_ref().unwrap().on_enter();
+    }
+    
+    /// 获取所有当前流程 / get all current procedures
+    /// #Return
+    /// * `Vec<String>` - 流程名称列表 / procedure name list
+    //如果一个方法返回的引用没有指向任何参数，那么它的返回值只能是方法体内部创建的
+    //但这会导致一个问题：返回值将在方法结束时离开作用域并被Rust清理，这是一个悬垂引用
+    // pub fn all_procedure_name<'a>(&'a self) -> Vec<Cow<'a, str>>{
+    //     let mut procedure_name_list= Vec::new();
+    //     for (key,value) in self._procedure_map.iter(){
+    //         procedure_name_list.push(Cow::Borrowed(value.get_state().as_str()));
+    //     }
+    //     return procedure_name_list;
+    // }
+
+    pub fn all_procedure_name(&self) -> Vec<String>{
+        let mut procedure_name_list : Vec<String> = Vec::new();
+        for (key,value) in self._procedure_map.iter(){
+            procedure_name_list.push(String::from(value.get_state().as_str()));
+        }
+        return procedure_name_list;
     }
 }
 

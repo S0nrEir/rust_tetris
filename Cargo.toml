@@ -11,5 +11,5 @@ num_enum = "0.7.3"
 colored = "2.0"
 
 [features]
-# 开启调试代码
+# 包含调试日志代码 / Include debug log code 
 debug_log = []

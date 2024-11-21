@@ -12,3 +12,15 @@ pub enum ProcedureEnum {
     ///游戏结束 / Game Over
     Over = 2,
 }
+
+impl ProcedureEnum {
+    
+    ///将枚举转换为&str / Convert enum to &str
+    pub fn as_str(&self) -> &str {
+        match self {
+            ProcedureEnum::MainUI => "MainUI",
+            ProcedureEnum::Playing => "Playing",
+            ProcedureEnum::Over => "Over",
+        }
+    }
+}

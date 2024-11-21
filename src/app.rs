@@ -1,17 +1,31 @@
 ﻿use std::{env, fmt, path};
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use ggez::{event, graphics::{self}, Context, GameResult, timer};
+use ggez::conf::WindowMode;
+use ggez::input::gamepad::gilrs::EventType;
 use crate::tools::Logger::*;
 use crate::constant;
 use crate::constant::{APP_AUTHOR_NAME, APP_GAME_ID};
-use crate::runtime::*;
+use crate::runtime::event::EventComponent;
+use crate::runtime::procedure::ProcedureComponent;
+use crate::runtime::input::InputComponent;
+use crate::runtime::procedure;
+use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing};
+use crate::define::enum_define::ProcedureEnum;
+use crate::t_state::TState;
 
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
     ///帧率 / Frame rate
-    frames : usize,
-    
+    _frames : usize,
+    ///事件组件 / Event component
+    _event_comp : EventComponent,
+    ///输入组件 / Input component
+    _input_comp : InputComponent,
+    ///流程组件 / Procedure component
+    _procedure_comp : ProcedureComponent,
 }
 
 //实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
@@ -19,10 +33,22 @@ impl App {
     
     /// 启动 / Start
     pub fn start_up(){
-        let context_builder = ggez::ContextBuilder::new(APP_GAME_ID, APP_AUTHOR_NAME).add_resource_path(Self::get_config_resource_dir());
+        let mut context_builder = ggez::ContextBuilder::new(APP_GAME_ID, APP_AUTHOR_NAME)
+            //resources
+            .add_resource_path(Self::get_config_resource_dir())
+            //window
+            .window_mode(WindowMode::default().dimensions(constant::WINDOW_WIDTH, constant::WINDOW_HEIGHT));;
+        
         //get context builder & build app
         if let Ok((mut context, event_loop)) = context_builder.build() {
-            if let Ok(app) = App::new(&mut context) {
+            //initial procedures
+            let procedure_list: Vec<Option<Rc<dyn TState>>> = vec![
+                        Some(Rc::new(procedure_main_ui::ProcedureMainUI::new())),
+                        Some(Rc::new(procedure_playing::ProcedurePlaying::new())),
+                        Some(Rc::new(procedure_over::ProcedureOver::new()))];
+            
+            if let Ok(mut app) = App::new(&mut context, constant::RUNTIME_INITIAL_PROCEDURE_INDEX, procedure_list){
+                //app._procedure_comp.switch(ProcedureEnum::MainUI);
                 event::run(context, event_loop,app);
             }
         }
@@ -32,18 +58,19 @@ impl App {
     /// 创建一个新的EventHandler实例 / Create a new EventHandler instance
     /// # Arguments
     /// * `ctx` - 上下文对象 / Context object
+    /// * `initial_proc_index` - 初始流程索引 / Initial procedure index
+    /// * `Vec<Option<Rc<dyn TState>>` - 流程列表 / Procedure list
     /// # Return
     /// * `GameResult<App>` - App实例 / App instance
-    pub fn new(ctx: &mut Context) -> GameResult<App> {
+    pub fn new(ctx: &mut Context,initial_proc_index:i32,procedure_list:Vec<Option<Rc<dyn TState>>>) -> GameResult<App> {
         Self::init_config_font(ctx);
-        let app = Self::init_config_app();
+        let app = App{
+            _frames : 0,
+            _event_comp:EventComponent::new(),
+            _input_comp:InputComponent::new(),
+            _procedure_comp:ProcedureComponent::new(initial_proc_index,procedure_list)
+        };
         return Ok(app);
-    }
-    
-    /// 游戏入口初始化配置 / Game entry initialization configuration
-    fn init_config_app() -> Self{
-        let app = App { frames: 0 };
-        return  app;
     }
     
     /// 字体初始化配置 / Font initialization configuration
