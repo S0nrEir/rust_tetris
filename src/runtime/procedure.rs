@@ -3,9 +3,11 @@ pub mod procedure_playing;
 pub mod procedure_over;
 
 use std::borrow::Cow;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::app_components::AppComponents;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
 use crate::t_updatable::Updatable;
@@ -18,6 +20,8 @@ pub struct ProcedureComponent{
     _current_procedure:Option<Rc<dyn TState>>,
     ///流程映射 / procedure map
     _procedure_map:HashMap<i32,Rc<dyn TState>>,
+    ///关联的运行时组件集合 / Associated runtime component set
+    _runtime_app_components: Option<Rc<RefCell<AppComponents>>>
 }
 
 impl ProcedureComponent {
@@ -32,6 +36,7 @@ impl ProcedureComponent {
         let mut procedure_component = ProcedureComponent{
             _current_procedure:None,
             _procedure_map:procedure_map,
+            _runtime_app_components:None
         };
         
         for item in procedure_vec {
@@ -59,6 +64,7 @@ impl ProcedureComponent {
         let mut procedure_component = ProcedureComponent{
             _current_procedure:None,
             _procedure_map:HashMap::new(),
+            _runtime_app_components:None
         };
         return procedure_component;
     }
@@ -173,5 +179,17 @@ impl ProcedureComponent {
 impl Updatable for ProcedureComponent{
     fn on_update(&self) {
         todo!()
+    }
+}
+
+impl ProcedureComponent {
+    ///关联运行时组件集合 / Associated runtime component set
+    /// #Arguments
+    /// - app_components: 运行时组件集合 / Runtime component set
+    /// #Returns
+    /// - 是否成功 / Is it successful
+    pub fn set_components(&mut self,app_components:Rc<RefCell<AppComponents>>) -> bool{
+        self._runtime_app_components = Some(app_components);
+        return true;
     }
 }

@@ -16,6 +16,9 @@ pub const APP_AUTHOR_NAME : &str = "SonrEir";
 ///帧率
 pub const APP_FPS : u32 = 60;
 
+/// 1秒钟逻辑更新间隔 / 1 second logic update interval
+pub const APP_UPDATE_INTERVAL_1_SEC : f64 = 1.0;
+
 //------------------------------runtime------------------------------
 ///初始流程下标索引
 pub const RUNTIME_INITIAL_PROCEDURE_INDEX : i32 = 0;
