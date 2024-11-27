@@ -5,7 +5,7 @@ use std::rc::{self, Rc};
 use rand::Rng;
 use crate::t_updatable::Updatable;
 use crate::tools::Logger::*;
-use crate::runtime::app_components::AppComponents;
+// use crate::runtime::app_components::AppComponents;
 use crate::tools::Logger::*;
 
 ///事件组件 / Event Component
@@ -13,8 +13,8 @@ use crate::tools::Logger::*;
 pub struct EventComponent {
     ///回调列表
     _event_map:HashMap<i32,Vec<fn()>>,
-    ///关联的运行时组件集合
-    _runtime_app_components: Option<Rc<RefCell<AppComponents>>>
+    //关联的运行时组件集合
+    // _runtime_app_components: Option<Rc<RefCell<AppComponents>>>
 }
 
 impl EventComponent {
@@ -22,7 +22,7 @@ impl EventComponent {
     pub fn new() -> Self {
         return EventComponent {
             _event_map: HashMap::new(),
-            _runtime_app_components: None
+            // _runtime_app_components: None
         };
     }
     
@@ -80,7 +80,7 @@ impl EventComponent {
             log(self, &format!("event map doesnt contains call back , event id: {}",event_id), LogLevelEnum::Error);
             return false;
         }
-        let index = call_back_vec.iter().position(|x| *x == call_back).unwrap();
+        // let index = call_back_vec.iter().position(|x| *x == call_back).unwrap();
         call_back_vec.clear();
         self._event_map.remove(&event_id);
         return true;
@@ -90,17 +90,5 @@ impl EventComponent {
 impl Updatable for EventComponent {
     fn on_update(&self) {
         println!("EventComponent update");
-    }
-}
-
-impl EventComponent{
-    ///关联运行时组件集合 / Associated runtime component set
-    /// #Arguments
-    /// - app_components: 运行时组件集合 / Runtime component set
-    /// #Returns
-    /// - 是否成功 / Is it successful
-    pub fn set_components(&mut self,app_components:Rc<RefCell<AppComponents>>) -> bool{
-        self._runtime_app_components = Some(app_components);
-        return true;
     }
 }

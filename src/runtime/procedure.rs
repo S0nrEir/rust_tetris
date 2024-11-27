@@ -7,11 +7,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use crate::define::enum_define::ProcedureEnum;
-use crate::runtime::app_components::AppComponents;
+// use crate::runtime::app_components::AppComponents;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
 use crate::t_updatable::Updatable;
 use crate::runtime::controller;
+use crate::runtime::controller::Controller;
 
 /// 流程组件，用于控制流程 / procedure component, used to control procedure
 #[derive(Debug)]
@@ -20,8 +21,8 @@ pub struct ProcedureComponent{
     _current_procedure:Option<Rc<dyn TState>>,
     ///流程映射 / procedure map
     _procedure_map:HashMap<i32,Rc<dyn TState>>,
-    ///关联的运行时组件集合 / Associated runtime component set
-    _runtime_app_components: Option<Rc<RefCell<AppComponents>>>
+    // 关联的运行时组件集合 / Associated runtime component set
+    // _runtime_app_components: Option<Rc<RefCell<AppComponents>>>
 }
 
 impl ProcedureComponent {
@@ -36,7 +37,7 @@ impl ProcedureComponent {
         let mut procedure_component = ProcedureComponent{
             _current_procedure:None,
             _procedure_map:procedure_map,
-            _runtime_app_components:None
+            // _runtime_app_components:None
         };
         
         for item in procedure_vec {
@@ -64,7 +65,7 @@ impl ProcedureComponent {
         let mut procedure_component = ProcedureComponent{
             _current_procedure:None,
             _procedure_map:HashMap::new(),
-            _runtime_app_components:None
+            // _runtime_app_components:None
         };
         return procedure_component;
     }
@@ -80,17 +81,9 @@ impl ProcedureComponent {
             let err_msg = String::from(format!("procedure already exists, procedure:{}",enum_type));
             return Err(err_msg);
         }
-        
-        let insert_succ = self._procedure_map.insert(enum_type,Rc::clone(procedure.as_ref().unwrap()));
+
+        self._procedure_map.insert(enum_type,Rc::clone(procedure.as_ref().unwrap()));
         return Ok(());
-        // match insert_succ {
-        //     Some(_) => {
-        //         return Ok(());
-        //     },
-        //     None => {
-        //         return Err(String::from("insert failed,option is none"));
-        //     },
-        // }
     }
     
     /// 添加一个流程 / add a procedure
@@ -124,7 +117,7 @@ impl ProcedureComponent {
     /// * `procedure_to_switch` - 要切换的流程枚举 / procedure enum to switch
     /// #Return
     /// * `bool` - 是否切换成功 / whether switch successfully
-    pub fn switch(&mut self,procedure_to_switch:ProcedureEnum) -> bool{
+    pub fn switch(&mut self,procedure_to_switch:ProcedureEnum,controller:&mut Controller) -> bool{
         if let Some(procedure_to_leave) = &self._current_procedure {
             procedure_to_leave.on_leave();
         }
@@ -132,7 +125,7 @@ impl ProcedureComponent {
         let enum_type:i32 = procedure_to_switch.into();
         if let Some(new_procedure) = self._procedure_map.get(&enum_type){
             self._current_procedure = Some(Rc::clone(new_procedure));
-            self._current_procedure.as_ref().unwrap().on_enter();
+            self._current_procedure.as_ref().unwrap().on_enter(controller);
         }
         else{
             let err_msg = &format!("procedure not found , procedure:{}",enum_type);
@@ -151,7 +144,17 @@ impl ProcedureComponent {
         }
         let temp = Rc::clone(self._procedure_map.get(&procedure_type).unwrap());
         self._current_procedure = Some(Rc::clone(self._procedure_map.get(&procedure_type).unwrap()));
-        self._current_procedure.as_ref().unwrap().on_enter();
+        // self._current_procedure.as_ref().unwrap().on_enter();
+    }
+    
+    /// 当前的流程阶段 / current procedure stage
+    /// #Return
+    /// * `Option<ProcedureEnum>` - 当前流程 / current procedure
+    pub fn curr_procedure(&self) -> Option<ProcedureEnum>{
+        if(self._current_procedure.is_none()){
+            return None;
+        }
+        return Some(self._current_procedure.as_ref().unwrap().get_state().into());
     }
     
     /// 获取所有当前流程 / get all current procedures
@@ -179,17 +182,5 @@ impl ProcedureComponent {
 impl Updatable for ProcedureComponent{
     fn on_update(&self) {
         todo!()
-    }
-}
-
-impl ProcedureComponent {
-    ///关联运行时组件集合 / Associated runtime component set
-    /// #Arguments
-    /// - app_components: 运行时组件集合 / Runtime component set
-    /// #Returns
-    /// - 是否成功 / Is it successful
-    pub fn set_components(&mut self,app_components:Rc<RefCell<AppComponents>>) -> bool{
-        self._runtime_app_components = Some(app_components);
-        return true;
     }
 }

@@ -1,5 +1,6 @@
 ﻿use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::controller::Controller;
 
 ///游戏结束，结算，重开
 /// game over, settlement, restart
@@ -10,7 +11,7 @@ pub  struct ProcedureOver{
 impl TState for ProcedureOver{
     
     //--------impl--------
-    fn on_enter(&self) {
+    fn on_enter(&self,controller:&mut Controller) {
         println!("ProcedureOver enter");
     }
 

@@ -1,5 +1,6 @@
 ﻿use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::controller::Controller;
 
 ///游玩状态
 /// playing state
@@ -8,7 +9,7 @@ pub  struct ProcedurePlaying{
 }
 
 impl TState for ProcedurePlaying{
-    fn on_enter(&self) {
+    fn on_enter(&self,controller:&mut Controller) {
         println!("ProcedurePlaying enter");
     }
 

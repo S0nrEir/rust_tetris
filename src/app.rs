@@ -1,35 +1,32 @@
-﻿use std::borrow::Borrow;
-use std::{env, fmt, mem, path};
+﻿use std::{env, fmt, mem, path};
 use std::cell::RefCell;
-use std::fmt::{Display};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use ggez::{Context, event, GameResult, graphics::{self}};
 use ggez::conf::WindowMode;
-use ggez::input::keyboard::KeyCode::AbntC1;
 use ggez::input::keyboard::KeyInput;
-use rand::Rng;
 use crate::constant;
+// use crate::runtime::app_components::AppComponents;
+use crate::runtime::controller::Controller;
+use crate::runtime::event::EventComponent;
 use crate::runtime::input::InputComponent;
-use crate::runtime::app_components::AppComponents;
-use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing};
+use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing, ProcedureComponent};
 use crate::t_state::TState;
+use crate::t_updatable::Tickable;
 use crate::tools::Logger::{log, LogLevelEnum};
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
     ///帧率 / Frame rate
     _frames : usize,
-    ///事件组件 / Event component
-    // _event_comp : EventComponent,
-    // ///输入组件 / Input component
-    // _input_comp : InputComponent,
-    // ///流程组件 / Procedure component
-    // _procedure_comp : ProcedureComponent,
-    // ///上一帧到当前帧的时间间隔 / Time interval from last frame to current frame
-     _elapsed_sec_from_last_frame: f64,
-    //组件集合 / Component collection
-    _app_components : Option<Rc<RefCell<AppComponents>>>, 
+    /// 上一帧到当前帧的时间间隔 / Time interval from last frame to current frame
+     _elapsed_sec_from_last_frame: f32,
+    ///组件集合 / Component collection
+    // _app_components : AppComponents,
+    _procedure_component: ProcedureComponent,
+    _input_component: InputComponent,
+    _event_component: EventComponent,
+    _controller: Controller,
 }
 
 //实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
@@ -70,11 +67,12 @@ impl App {
         Self::init_config_font(ctx);
         let app = App {
             _frames: 0,
-            // _event_comp: EventComponent::new(),
-            // _input_comp: InputComponent::new(),
-            // _procedure_comp: ProcedureComponent::new(initial_proc_index, procedure_list),
              _elapsed_sec_from_last_frame: 0.0,
-            _app_components : Some(AppComponents::new(initial_proc_index, procedure_list)),
+            // _app_components : AppComponents::new(initial_proc_index, procedure_list),
+            _procedure_component:ProcedureComponent::new(initial_proc_index, procedure_list),
+            _input_component:InputComponent::new(),
+            _event_component:EventComponent::new(),
+            _controller:Controller::new(),
         };
         
         return Ok(app);
@@ -99,7 +97,7 @@ impl App {
             let mut path = path::PathBuf::from(manifest_dir);
             path.push(constant::RESOURCE_DIR);
             return path;
-        } 
+        }
         else {
             let base_path = Path::new("./");
             let resource_path = base_path.join(constant::RESOURCE_DIR);
@@ -109,12 +107,13 @@ impl App {
     
     /// 主帧循环 / Main frame loop
     /// # Arguments
-    /// * `delta_time` - 时间间隔 / Time interval
+    /// * `delta_time` - 时间间隔 / Time interval4
     fn main_update(&mut self, delta_time:f64){
-        self._elapsed_sec_from_last_frame += delta_time;
-        
-        if(self._elapsed_sec_from_last_frame >= constant::APP_UPDATE_INTERVAL_1_SEC){
-            let elapsed = mem::take(&mut self._elapsed_sec_from_last_frame);
+        self._elapsed_sec_from_last_frame += (delta_time as f32); 
+        if(self._elapsed_sec_from_last_frame >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
+            
+            
+            mem::take(&mut self._elapsed_sec_from_last_frame);
             
             #[cfg(feature = "debug_log")]{
             }
@@ -145,11 +144,6 @@ impl event::EventHandler<ggez::GameError> for App {
         );
         
         canvas.finish(ctx)?;
-        // self.frames += 1;
-        // if (self.frames % 300) == 0 {
-        //     log(&self, &format!("FPS: {}",ctx.time.fps()), LogLevelEnum::Info);
-        // }
-
         return Ok(());
     }
     
@@ -161,10 +155,14 @@ impl event::EventHandler<ggez::GameError> for App {
     /// # Return
     /// * `GameResult` - 处理结果 / Processing result
     fn key_down_event(&mut self, _ctx: &mut Context, input: KeyInput, repeat: bool) -> GameResult {
+        self._input_component.set_curr_input_key(input.keycode);
+        // self._app_components.input_mut().set_curr_input_key(input.keycode);
+        
         #[cfg(feature = "debug_log")]{
-            log(self,&format!("Key pressed: keycode {:?},  repeat: {}", input.keycode, repeat),LogLevelEnum::Info);
+            log(&self,&format!("Key pressed: keycode {:?},  repeat: {}", input.keycode, repeat),LogLevelEnum::Info);
         }
-        Ok(())
+        
+        return Ok(());
     }
 }
 
