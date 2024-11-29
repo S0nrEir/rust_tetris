@@ -188,7 +188,10 @@ impl ProcedureComponent {
 
 impl Updatable for ProcedureComponent{
     fn on_update(&mut self,ctx:&mut Context,key_code:Option<KeyCode>){
-
+        
+        if let Some(curr_procedure) = &mut self._current_procedure{
+            curr_procedure.on_update(key_code.unwrap_or(KeyCode::Escape));
+        }
         #[cfg(feature = "debug_log")]{
             log(self,&format!("procedure component on update"),LogLevelEnum::Info);
         }

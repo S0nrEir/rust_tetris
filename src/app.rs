@@ -111,7 +111,7 @@ impl App {
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
         self._elapsed_sec_from_last_frame += (delta_time as f32); 
         self._procedure_component.on_update(ctx,key_code);
-            
+        
         if(self._elapsed_sec_from_last_frame >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
             
             self._procedure_component.on_tick(
