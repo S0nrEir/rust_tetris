@@ -85,10 +85,14 @@ impl EventComponent {
         self._event_map.remove(&event_id);
         return true;
     }
-}
-
-impl Updatable for EventComponent {
-    fn on_update(&self) {
-        println!("EventComponent update");
+    
+    pub fn test(&self){
+        
     }
 }
+
+// impl Updatable for EventComponent {
+//     fn on_update(&self) {
+//         println!("EventComponent update");
+//     }
+// }

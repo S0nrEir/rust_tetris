@@ -1,19 +1,20 @@
-﻿use crate::t_state::TState;
+﻿use ggez::input::keyboard::KeyCode;
+use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
-use crate::runtime::controller::Controller;
+// use crate::runtime::controller::Controller;
 
 ///游玩状态
 /// playing state
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub  struct ProcedurePlaying{
 }
 
 impl TState for ProcedurePlaying{
-    fn on_enter(&self,controller:&mut Controller) {
+    fn on_enter(&self) {
         println!("ProcedurePlaying enter");
     }
 
-    fn on_update(&self) {
+    fn on_update(&mut self,key_code: KeyCode) {
         println!("ProcedurePlaying update");
     }
 

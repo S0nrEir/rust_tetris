@@ -2,11 +2,10 @@
 use ggez::event::EventHandler;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
-use crate::runtime::controller::Controller;
 
 ///主UI流程 / 
 /// main UI procedure
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct ProcedureMainUI{
 }
 
@@ -14,17 +13,14 @@ pub struct ProcedureMainUI{
 /// implement state machine interface
 impl TState for ProcedureMainUI{
 
-    fn on_enter(&self,controller:&mut Controller) {
-        controller.set_input_mode(ProcedureEnum::MainUI);
+    fn on_enter(&self) {
     }
 
-    fn on_update(&self) {
+    fn on_update(&mut self,_key_code: ggez::input::keyboard::KeyCode) {
         println!("ProcedureMainUI update");
     }
 
-    fn on_leave(&self,controller:&mut Controller) {
-        println!("ProcedureMainUI exit");
-        controller.clear_input();
+    fn on_leave(&self) {
     }
     
     fn get_state(&self) -> ProcedureEnum {

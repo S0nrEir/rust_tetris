@@ -1,21 +1,21 @@
-﻿use crate::t_state::TState;
+﻿use ggez::input::keyboard::KeyCode;
+use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
-use crate::runtime::controller::Controller;
 
 ///游戏结束，结算，重开
 /// game over, settlement, restart
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub  struct ProcedureOver{
 }
 
 impl TState for ProcedureOver{
     
     //--------impl--------
-    fn on_enter(&self,controller:&mut Controller) {
+    fn on_enter(&self) {
         println!("ProcedureOver enter");
     }
 
-    fn on_update(&self) {
+    fn on_update(&mut self,key_code: KeyCode) {
         println!("ProcedureOver update");
     }
 

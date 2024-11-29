@@ -40,7 +40,11 @@
 //         return &self._input_comp; 
 //     }
 //     
-//     pub fn event(&mut self) -> &mut event::EventComponent{
+//     pub fn event(&self) -> &event::EventComponent{
+//         return &self._event_comp;
+//     }
+// 
+//     pub fn event_mut(&mut self) -> &mut event::EventComponent{
 //         return &mut self._event_comp;
 //     }
 //     
@@ -53,7 +57,7 @@
 //     }
 // 
 //     //----------------------------new----------------------------
-//     pub fn new(initial_proc_index:i32,procedure_list:Vec<Option<Rc<dyn TState>>>) -> Self{
+//     pub fn new(initial_proc_index:i32,procedure_list:Vec<Option<Box<dyn TState>>>) -> Self{
 //         let input_comp = InputComponent::new();
 //         let event_comp = event::EventComponent::new();
 //         let procedure_comp = procedure::ProcedureComponent::new(initial_proc_index,procedure_list);

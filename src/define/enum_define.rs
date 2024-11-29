@@ -2,7 +2,7 @@
 
 ///状态枚举
 
-#[derive(IntoPrimitive,Copy,Clone)]
+#[derive(IntoPrimitive,Copy,Clone,Debug)]
 #[repr(i32)]
 pub enum ProcedureEnum {
     ///主界面 / MainUI
