@@ -1,11 +1,14 @@
 ﻿pub mod procedure_main_ui;
 pub mod procedure_playing;
 pub mod procedure_over;
+pub mod t_procedure_param;
+
 use std::collections::HashMap;
 use std::mem;
 use ggez::Context;
 use ggez::input::keyboard::KeyCode;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
 use crate::t_updatable::{Tickable, Updatable};
@@ -113,13 +116,16 @@ impl ProcedureComponent {
     /// * `procedure_to_switch` - 要切换的流程枚举 / procedure enum to switch
     /// #Return
     /// * `bool` - 是否切换成功 / whether switch successfully
-    pub fn switch(&mut self,procedure_to_switch:ProcedureEnum) -> bool{
+    pub fn switch(&mut self,
+                  procedure_to_switch:ProcedureEnum,
+                  enter_param:Option<Box<dyn ProcedureParam>>,
+                  leave_param:Option<Box<dyn ProcedureParam>>) -> bool{
 
         //离开原有流程，并且将其保存起来 / leave the original procedure and save it
         //ps 对于第一次理解所有权概念的人来说真是折磨!! / ps for those who first understand the concept of ownership, it is really torture!!
         if let Some(procedure_to_leave) = mem::replace(&mut self._current_procedure,None){
             let procedure_enum = procedure_to_leave.get_state();
-            procedure_to_leave.on_leave();
+            procedure_to_leave.on_leave(leave_param);
             //如果k已经存在则更新并返回旧值，如果是全新的则返回none
             match self._procedure_map.insert(procedure_enum.into(), procedure_to_leave) { 
                 Some(_) => {
@@ -135,7 +141,7 @@ impl ProcedureComponent {
         //remove返回被移除的值并且获取所有权，如果不存在返回none
         if let Some(new_procedure) = self._procedure_map.remove(&enum_type){
             self._current_procedure = Some(new_procedure);
-            self._current_procedure.as_ref().unwrap().on_enter();
+            self._current_procedure.as_ref().unwrap().on_enter(enter_param);
             return true;
         }
         else{

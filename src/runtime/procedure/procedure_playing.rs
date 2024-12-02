@@ -1,6 +1,7 @@
 ﻿use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 // use crate::runtime::controller::Controller;
 
 ///游玩状态
@@ -10,7 +11,7 @@ pub  struct ProcedurePlaying{
 }
 
 impl TState for ProcedurePlaying{
-    fn on_enter(&self) {
+    fn on_enter(&self,_param:Option<Box<dyn ProcedureParam>>) {
         println!("ProcedurePlaying enter");
     }
 
@@ -18,7 +19,7 @@ impl TState for ProcedurePlaying{
         println!("ProcedurePlaying update");
     }
 
-    fn on_leave(&self) {
+    fn on_leave(&self,_param:Option<Box<dyn ProcedureParam>>) {
         println!("ProcedurePlaying exit");
     }
 
@@ -32,4 +33,18 @@ impl ProcedurePlaying {
     pub fn new() -> Self{
         return ProcedurePlaying{};
     }
+}
+
+#[derive(Debug)]
+pub struct ProcedurePlayingParam{
+}
+
+impl ProcedurePlayingParam {
+    pub fn new() -> Self{
+        return ProcedurePlayingParam{};
+    }
+}
+
+impl ProcedureParam for ProcedurePlayingParam{
+    
 }

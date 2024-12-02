@@ -1,14 +1,16 @@
 ﻿use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use ggez::input::keyboard::KeyCode;
+use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 
 const MAX_ITEM_COUNT:i8 = 2;
 
 ///主UI流程 / 
 /// main UI procedure
-#[derive(Debug,Clone)]
+#[derive(Debug)]
 pub struct ProcedureMainUI{
     selected_item_index: i8,
+    _param : Option<Box<dyn ProcedureParam>>,
 }
 
 impl ProcedureMainUI {
@@ -16,10 +18,11 @@ impl ProcedureMainUI {
     pub fn new() -> Self {
         return ProcedureMainUI{
             selected_item_index: 0,
+            _param : None,
         };
     }
     
-    ///选择项 / select item
+    /// 设置当前的选择索引 / set the current selection index
     /// #Arguments
     /// * `move_offset` - 索引偏移 / index offset
     fn select_item(&mut self, move_offset:i8) {
@@ -47,7 +50,7 @@ impl ProcedureMainUI {
 /// implement state machine interface
 impl TState for ProcedureMainUI{
 
-    fn on_enter(&self) {
+    fn on_enter(&self,_param:Option<Box<dyn ProcedureParam>>) {
         
     }
 
@@ -67,10 +70,24 @@ impl TState for ProcedureMainUI{
         }
     }
 
-    fn on_leave(&self) {
+    fn on_leave(&self,_param:Option<Box<dyn ProcedureParam>>) {
     }
     
     fn get_state(&self) -> ProcedureEnum {
         return ProcedureEnum::MainUI;
     }
+}
+
+#[derive(Debug)]
+pub struct ProcedureMainUIParam{
+    
+}
+
+impl ProcedureMainUIParam {
+    pub fn new() -> Self {
+        return ProcedureMainUIParam{};
+    }
+}
+
+impl ProcedureParam for ProcedureMainUIParam {
 }

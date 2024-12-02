@@ -1,6 +1,7 @@
 ﻿use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 
 ///游戏结束，结算，重开
 /// game over, settlement, restart
@@ -11,7 +12,7 @@ pub  struct ProcedureOver{
 impl TState for ProcedureOver{
     
     //--------impl--------
-    fn on_enter(&self) {
+    fn on_enter(&self,_param:Option<Box<dyn ProcedureParam>>) {
         println!("ProcedureOver enter");
     }
 
@@ -19,7 +20,7 @@ impl TState for ProcedureOver{
         println!("ProcedureOver update");
     }
 
-    fn on_leave(&self) {
+    fn on_leave(&self,_param:Option<Box<dyn ProcedureParam>>) {
     }
     
     fn get_state(&self) -> ProcedureEnum {
@@ -31,6 +32,12 @@ impl ProcedureOver {
     //--------new--------
     pub fn new() -> Self{
         return ProcedureOver{};
-    }
-    
+    }   
+}
+
+#[derive(Debug,)]
+pub struct ProcedureOverParam{
+}
+
+impl ProcedureParam for ProcedureOverParam{
 }
