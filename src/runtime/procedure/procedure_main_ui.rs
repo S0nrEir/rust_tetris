@@ -64,7 +64,7 @@ impl ProcedureMainUI {
     fn draw_title(&self,canvas: &mut Canvas){
         canvas.draw(
             Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.0), 
-            ggez::glam::Vec2::new(constant::WINDOW_WIDTH / 2.0, constant::PROC_MAIN_UI_TITLE_TEXT_POS_Y / 2.0)
+            ggez::glam::Vec2::new(constant::WINDOW_WIDTH / 2.0, constant::WINDOW_HEIGHT / 2.0)
         );
     }
 }
