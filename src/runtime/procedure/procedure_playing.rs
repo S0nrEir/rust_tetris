@@ -3,14 +3,16 @@ use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::data::block_area::BlockArea;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::Drawable;
 // use crate::runtime::controller::Controller;
 
 ///游玩状态
 /// playing state
-#[derive(Debug,Clone)]
+#[derive(Debug)]
 pub  struct ProcedurePlaying{
+    _block_area: BlockArea
 }
 
 impl Drawable for ProcedurePlaying {
@@ -40,7 +42,9 @@ impl TState for ProcedurePlaying{
 impl ProcedurePlaying {
     //--------new--------
     pub fn new() -> Self{
-        return ProcedurePlaying{};
+        return ProcedurePlaying{
+            _block_area:BlockArea::new()
+        };
     }
 }
 

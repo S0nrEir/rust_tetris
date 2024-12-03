@@ -26,7 +26,7 @@ impl ProcedureMainUI {
         return ProcedureMainUI{
             _selected_item_index : 0,
             _param               : None,
-            _title_text_offset   : Vec2::new(-80., 0.)
+            _title_text_offset   : Vec2::new(-100., 0.)
         };
     }
     
