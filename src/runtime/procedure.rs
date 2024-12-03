@@ -9,7 +9,7 @@ use ggez::{Context, GameResult};
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
-use crate::tools::Logger::*;
+use crate::tools::logger::*;
 use crate::t_updatable::{Tickable, Updatable};
 
 /// 流程组件，用于控制流程 / procedure component, used to control procedure
@@ -192,7 +192,7 @@ impl ProcedureComponent {
 impl Tickable for ProcedureComponent {
     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
         #[cfg(feature = "debug_log")]{
-            crate::tools::Logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
+            crate::tools::logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
         }
     }
 }

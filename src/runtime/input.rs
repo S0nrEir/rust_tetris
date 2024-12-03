@@ -1,11 +1,9 @@
 ﻿use std::fmt::Debug;
-use ggez::Context;
 use ggez::input::keyboard::KeyCode;
 use crate::define::enum_define::ProcedureEnum;
-use crate::t_updatable::{Tickable, Updatable};
-use crate::tools::Logger::{log, LogLevelEnum};
+use crate::tools::logger::{log, LogLevelEnum};
 use crate::define::fn_define::Bool_KeyCode_Fn;
-use crate::tools::Logger::*;
+// use crate::tools::logger::*;
 
 ///输入组件 / Input Component
 #[derive(Debug)]
@@ -57,17 +55,17 @@ impl InputComponent {
     /// #Returns
     /// - 是否接受输入 / Whether to accept input
     fn main_ui_input_filter(key_code: KeyCode) -> bool{
-        match key_code { 
-            KeyCode::Return | 
+        return match key_code {
+            KeyCode::Return |
             KeyCode::Up |
             KeyCode::Down |
             KeyCode::Left |
             KeyCode::Right |
             KeyCode::Space => {
-                return true;
+                true
             },
             _ => {
-                return false;
+                false
             },
         }
     }

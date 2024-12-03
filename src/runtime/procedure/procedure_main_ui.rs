@@ -1,13 +1,11 @@
-﻿use std::any::{Any, TypeId};
-use std::fmt::Debug;
-use colored::Color;
+﻿use std::fmt::Debug;
 use ggez::{Context, GameResult, graphics};
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use ggez::input::keyboard::KeyCode;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::Drawable;
-use ggez::graphics::{Canvas, FontData, Text};
+use ggez::graphics::{Canvas, Text};
 use crate::constant;
 
 const MAX_ITEM_COUNT:i8 = 2;
@@ -39,7 +37,7 @@ impl ProcedureMainUI {
     fn select_item(&mut self, move_offset:i8) {
         let new_index = self._selected_item_index + move_offset;
         #[cfg(feature = "debug_log")]{
-            crate::tools::Logger::log_info_colored(&self, &format!("menu select new index:{}", new_index), Color::Cyan);
+            crate::tools::logger::log_info_colored(&self, &format!("menu select new index:{}", new_index), Color::Cyan);
         }
         
         match new_index{
@@ -76,15 +74,15 @@ impl Drawable for ProcedureMainUI {
         //draw title
         
         #[cfg(feature = "debug_log")]{
-            crate::tools::Logger::log_info_colored("procedure_main_ui.on_draw()", &format!("calling..."), Color::Blue);
+            crate::tools::logger::log_info_colored("procedure_main_ui.on_draw()", &format!("calling..."), Color::Blue);
         }
         
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::from([0.1, 0.2, 0.3, 1.0]));
-        canvas.draw(
-            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.),
-            ggez::glam::Vec2::new(1000., 100.),
-        );
-        // self.draw_title(&mut canvas);
+        // canvas.draw(
+        //     Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.),
+        //     ggez::glam::Vec2::new(1000., 100.),
+        // );
+        self.draw_title(&mut canvas);
         canvas.finish(ctx)?;
         
         return Ok(());
@@ -96,7 +94,7 @@ impl TState for ProcedureMainUI{
     
     fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
         #[cfg(feature = "debug_log")]{
-            crate::tools::Logger::log_info_colored(&self, &format!("proc main ui ---> on enter..."), Color::Cyan);
+            crate::tools::logger::log_info_colored(&self, &format!("proc main ui ---> on enter..."), Color::Cyan);
         }
     }
     

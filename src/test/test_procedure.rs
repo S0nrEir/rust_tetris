@@ -4,7 +4,7 @@
 //     use std::rc::Rc;
 //     use crate::runtime::procedure::*;
 //     use crate::define::enum_define;
-//     use crate::tools::Logger::*;
+//     use crate::tools::logger::*;
 //     
 //     #[test]
 //     pub fn entry() {

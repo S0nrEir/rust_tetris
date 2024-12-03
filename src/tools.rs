@@ -1,4 +1,4 @@
-﻿pub mod Logger{
+﻿pub mod logger {
     use std::fmt::Debug;
     use colored::*;
     use num_enum::IntoPrimitive;
@@ -15,7 +15,6 @@
             LogLevelEnum::Warning => { log_warning(sender,msg); }
             LogLevelEnum::Error => { log_error(sender,msg); }
             LogLevelEnum::Fatal => { log_fatal(sender,msg); }
-            _ => {}
         }
     }
     

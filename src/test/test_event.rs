@@ -1,7 +1,7 @@
 ﻿// #[cfg(test)]
 // mod test_event{
 //     use crate::event::EventComponent;
-//     use crate::tools::Logger::{log, LogLevelEnum};
+//     use crate::tools::logger::{log, LogLevelEnum};
     
 //     #[test]
 //     fn entry(){

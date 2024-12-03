@@ -8,7 +8,6 @@ mod define;
 mod runtime;
 mod app;
 
-use ggez::glam::*;
 use app::App;
 
 fn main() {

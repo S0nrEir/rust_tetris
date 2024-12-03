@@ -1,7 +1,7 @@
 ﻿///测试logger相关 / Test logger related
 #[cfg(test)]
 mod test_logger{
-    use crate::tools::Logger::*;
+    use crate::tools::logger::*;
     #[test]
     fn entry(){
         log(1u8,"test log warning",LogLevelEnum::Warning);

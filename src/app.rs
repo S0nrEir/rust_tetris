@@ -109,7 +109,7 @@ impl App {
         if(self._elapsed_sec_from_last_frame >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
             
             // #[cfg(feature = "debug_log")]{
-            //     crate::tools::Logger::log_info_colored(&self, &format!("main tick called"), Color::Cyan);
+            //     crate::tools::logger::log_info_colored(&self, &format!("main tick called"), Color::Cyan);
             // }
             
             self._procedure_component.on_tick(

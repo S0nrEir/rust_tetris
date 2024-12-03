@@ -1,12 +1,6 @@
-﻿use std::cell::RefCell;
-use std::collections::HashMap;
-use std::fmt::format;
-use std::rc::{self, Rc};
-use rand::Rng;
-use crate::t_updatable::Updatable;
-use crate::tools::Logger::*;
-// use crate::runtime::app_components::AppComponents;
-use crate::tools::Logger::*;
+﻿use std::collections::HashMap;
+// use crate::t_updatable::Updatable;
+use crate::tools::logger::*;
 
 ///事件组件 / Event Component
 #[derive(Debug)]
