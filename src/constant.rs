@@ -29,11 +29,12 @@ pub const WINDOW_WIDTH: f32 = 1280.0;
 ///窗体高度 / Window height
 pub const WINDOW_HEIGHT: f32 = 720.0;
 
-//------------------------------window------------------------------
+//------------------------------procedure------------------------------
 /// 标题文本缩放 / Title text scale
-pub const PROC_MAIN_UI_ITEM_TEXT_SCALE : f32 = 48.0;
+pub const PROC_MAIN_UI_ITEM_TEXT_SCALE : f32 = 60.0;
 
 //------------------------------color------------------------------
 pub const COLOR_RGB_BLACK : [f32;3] = [0.0 ,0.0 ,0.0];
-pub const COLOR_RGBA_BLACK : [f32;4] = [0.0 ,0.0 ,0.0, 1.0];
+pub const COLOR_RGBA_BLACK_1 : [f32;4] = [0.0 ,0.0 ,0.0, 1.0];
 pub const COLOR_ALPHA_1 : [f32;1] = [1.0];
+pub const COLOR_ALPHA_0 : [f32;1] = [0.0];

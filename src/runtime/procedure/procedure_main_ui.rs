@@ -62,7 +62,7 @@ impl ProcedureMainUI {
     /// * `canvas` - 画布 / canvas
     fn draw_title(&self,canvas: &mut Canvas){
         canvas.draw(
-            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(60.), 
+            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE), 
             Vec2::new(
                 constant::WINDOW_WIDTH / 2.0 + self._title_text_offset.x, 
                 constant::WINDOW_HEIGHT / 4.0 + self._title_text_offset.y)
@@ -72,7 +72,7 @@ impl ProcedureMainUI {
 
 impl Drawable for ProcedureMainUI {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
-        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK));
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
         //draw title
         self.draw_title(&mut canvas);
         canvas.finish(ctx)?;
