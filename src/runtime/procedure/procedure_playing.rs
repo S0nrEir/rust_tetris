@@ -1,7 +1,10 @@
-﻿use ggez::input::keyboard::KeyCode;
+﻿use std::any::Any;
+use ggez::{Context, GameResult};
+use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
+use crate::t_updatable::Drawable;
 // use crate::runtime::controller::Controller;
 
 ///游玩状态
@@ -10,8 +13,14 @@ use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 pub  struct ProcedurePlaying{
 }
 
+impl Drawable for ProcedurePlaying {
+    fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
+        todo!()
+    }
+}
+
 impl TState for ProcedurePlaying{
-    fn on_enter(&self,_param:Option<Box<dyn ProcedureParam>>) {
+    fn on_enter(&mut self,_param:Box<dyn ProcedureParam>){
         println!("ProcedurePlaying enter");
     }
 

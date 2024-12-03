@@ -2,18 +2,22 @@
 use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
 use std::rc::Rc;
+use colored::Color;
 use ggez::{Context, event, GameResult, graphics::{self}};
 use ggez::conf::WindowMode;
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use crate::constant;
+use crate::define::enum_define::ProcedureEnum;
 // use crate::runtime::app_components::AppComponents;
 // use crate::runtime::controller::Controller;
 use crate::runtime::event::EventComponent;
 use crate::runtime::input::InputComponent;
 use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing, ProcedureComponent};
+use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
+use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::t_updatable::{Tickable, Updatable};
-use crate::tools::Logger::{log, LogLevelEnum};
+use crate::tools::Logger::{log, log_info_colored, LogLevelEnum};
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
@@ -48,7 +52,12 @@ impl App {
                         Some(Box::new(procedure_playing::ProcedurePlaying::new())),
                         Some(Box::new(procedure_over::ProcedureOver::new()))];
             
-            if let Ok(mut app) = App::new(&mut context, constant::RUNTIME_INITIAL_PROCEDURE_INDEX, procedure_list){
+            if let Ok(mut app) = App::new(
+                    &mut context, 
+                    constant::RUNTIME_INITIAL_PROCEDURE_INDEX, 
+                    procedure_list)
+            {
+                app._procedure_component.switch(ProcedureEnum::MainUI,Box::new(ProcedureMainUIParam::new()),None);
                 event::run(context, event_loop,app);
             }
         }
@@ -69,7 +78,9 @@ impl App {
             _frames: 0,
              _elapsed_sec_from_last_frame: 0.0,
             // _app_components : AppComponents::new(initial_proc_index, procedure_list),
-            _procedure_component:ProcedureComponent::new(initial_proc_index, procedure_list),
+            _procedure_component:ProcedureComponent::new(
+                initial_proc_index, 
+                procedure_list),
             _input_component:InputComponent::new(),
             // _event_component:EventComponent::new(),
             // _controller:Controller::new(),
@@ -110,9 +121,13 @@ impl App {
     /// * `delta_time` - 时间间隔 / Time interval4
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
         self._elapsed_sec_from_last_frame += (delta_time as f32); 
-        self._procedure_component.on_update(ctx,key_code);
+        // self._procedure_component.on_update(ctx,key_code);
         
         if(self._elapsed_sec_from_last_frame >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
+            
+            // #[cfg(feature = "debug_log")]{
+            //     crate::tools::Logger::log_info_colored(&self, &format!("main tick called"), Color::Cyan);
+            // }
             
             self._procedure_component.on_tick(
                 ctx,
@@ -153,6 +168,8 @@ impl event::EventHandler<ggez::GameError> for App {
             ctx, 
             graphics::Color::from([0.0, 0.0, 0.0, 1.0])
         );
+        
+        self._procedure_component.on_draw(ctx);
         
         canvas.finish(ctx)?;
         return Ok(());

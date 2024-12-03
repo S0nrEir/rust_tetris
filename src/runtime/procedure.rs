@@ -5,14 +5,13 @@ pub mod t_procedure_param;
 
 use std::collections::HashMap;
 use std::mem;
-use ggez::Context;
-use ggez::input::keyboard::KeyCode;
+use ggez::{Context, GameResult};
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::procedure::procedure_main_ui::ProcedureMainUI;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
 use crate::t_updatable::{Tickable, Updatable};
-// use crate::runtime::controller::Controller;
 
 /// 流程组件，用于控制流程 / procedure component, used to control procedure
 #[derive(Debug)]
@@ -30,7 +29,8 @@ impl ProcedureComponent {
     /// #Arguments
     /// * `entry_procedure_index` - 初始流程枚举 / initial procedure enum
     /// * `procedure_vec` - 要包含的流程列表 / procedure list to include
-    pub fn new(entry_procedure_index:i32,procedure_vec:Vec<Option<Box<dyn TState>>>) -> Self{
+    pub fn new(entry_procedure_index:i32,
+               procedure_vec:Vec<Option<Box<dyn TState>>>) -> Self{
         
         let procedure_map = HashMap::new();
         let mut procedure_component = ProcedureComponent{
@@ -48,8 +48,7 @@ impl ProcedureComponent {
                 },
             };
         }
-        procedure_component.set_default_procedure(entry_procedure_index);
-        
+        // procedure_component.set_default_procedure(entry_procedure_index);
         #[cfg(feature = "debug_log")]
         {
             let all_procedure = procedure_component.all_procedure_name();
@@ -118,7 +117,7 @@ impl ProcedureComponent {
     /// * `bool` - 是否切换成功 / whether switch successfully
     pub fn switch(&mut self,
                   procedure_to_switch:ProcedureEnum,
-                  enter_param:Option<Box<dyn ProcedureParam>>,
+                  enter_param:Box<dyn ProcedureParam>,
                   leave_param:Option<Box<dyn ProcedureParam>>) -> bool{
 
         //离开原有流程，并且将其保存起来 / leave the original procedure and save it
@@ -141,7 +140,9 @@ impl ProcedureComponent {
         //remove返回被移除的值并且获取所有权，如果不存在返回none
         if let Some(new_procedure) = self._procedure_map.remove(&enum_type){
             self._current_procedure = Some(new_procedure);
-            self._current_procedure.as_ref().unwrap().on_enter(enter_param);
+            let procedure_ref = self._current_procedure.as_mut().unwrap();
+            procedure_ref.on_enter(enter_param);
+            // self._current_procedure.as_ref().unwrap().on_enter(Some(Box::new(ProcedureMainUI::new())));
             return true;
         }
         else{
@@ -152,17 +153,20 @@ impl ProcedureComponent {
     }
     
     ///设置默认的procedure
-    fn set_default_procedure(&mut self,procedure_type:i32){
-        if(!self._procedure_map.contains_key(&procedure_type)){
-            log(self,&format!("set default procedure faild,proc type : {}",procedure_type),LogLevelEnum::Error);
-            return;
-        }
-        self._current_procedure = self._procedure_map.remove(&procedure_type);
-    }
+    // fn set_default_procedure(&mut self,procedure_type:i32,enter_param:Box<dyn ProcedureParam>){
+    //     if(!self._procedure_map.contains_key(&procedure_type)){
+    //         log(self,&format!("set default procedure faild,proc type : {}",procedure_type),LogLevelEnum::Error);
+    //         return;
+    //     }
+    //     self._current_procedure = self._procedure_map.remove(&procedure_type);
+    //     let proc_ref = self._current_procedure.as_mut().unwrap();
+    //     proc_ref.on_enter(enter_param);
+    //     // self._current_procedure.as_ref().unwrap().on_enter(enter_param);
+    // }
     
     /// 当前的流程阶段 / current procedure stage
     /// #Return
-    /// * `Option<ProcedureEnum>` - 当前流程 / current procedure
+    /// * `Option<ProcedureEnuxm>` - 当前流程 / current procedure
     pub fn curr_procedure(&self) -> Option<ProcedureEnum>{
         if(self._current_procedure.is_none()){
             return None;
@@ -190,19 +194,27 @@ impl ProcedureComponent {
         }
         return procedure_name_list;
     }
-}
-
-impl Updatable for ProcedureComponent{
-    fn on_update(&mut self,ctx:&mut Context,key_code:Option<KeyCode>){
-        
+    
+    pub fn on_draw(&mut self,ctx:&mut Context) -> GameResult{
         if let Some(curr_procedure) = &mut self._current_procedure{
-            curr_procedure.on_update(key_code.unwrap_or(KeyCode::Escape));
+            curr_procedure.on_draw(ctx);
         }
-        #[cfg(feature = "debug_log")]{
-            log(self,&format!("procedure component on update"),LogLevelEnum::Info);
-        }
+        
+        return Ok(());
     }
 }
+
+// impl Updatable for ProcedureComponent{
+//     fn on_update(&mut self,ctx:&mut Context,key_code:Option<KeyCode>){
+//         
+//         if let Some(curr_procedure) = &mut self._current_procedure{
+//             curr_procedure.on_update(key_code.unwrap_or(KeyCode::Escape));
+//         }
+//         #[cfg(feature = "debug_log")]{
+//             log(self,&format!("procedure component on update"),LogLevelEnum::Info);
+//         }
+//     }
+// }
 
 impl Tickable for ProcedureComponent {
     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {

@@ -1,5 +1,5 @@
 ﻿use std::fmt::Debug;
-use ggez::Context;
+use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
 
 ///刷帧更新接口 / updatable traits
@@ -9,6 +9,13 @@ pub trait Updatable:Debug {
     /// * `ctx` - 上下文 / context
     /// * `key_code` - 按键码 / key code
     fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>);
+}
+
+pub trait Drawable:Debug {
+    ///响应绘制调用 / response to draw call
+    /// #Arguments
+    /// * `ctx` - 上下文 / context
+    fn on_draw(&mut self,ctx:&mut Context) -> GameResult;
 }
 
 pub trait Tickable:Debug {
