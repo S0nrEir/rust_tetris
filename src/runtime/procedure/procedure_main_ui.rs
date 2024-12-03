@@ -22,23 +22,14 @@ pub struct ProcedureMainUI{
 }
 
 impl ProcedureMainUI {
-    
-    fn test<T:Debug+Any>(param:T){
-        let val = &param as &dyn Any;
-        let wrap = val.downcast_ref::<ProcedureMainUIParam>();
-        if let (actual_param) = wrap {
-            println!("enter1111111111111111111");
-        }
-    }
-    
     ///constructor
     pub fn new() -> Self {
         return ProcedureMainUI{
             _selected_item_index : 0,
             _param               : None,
-            _title_text          : graphics::Text::new("Tetris").
+            _title_text          : Text::new("Tetris").
                 set_font(constant::FONT_NAME).
-                set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE).clone()
+                set_scale(48.).clone()
         };
     }
     
@@ -73,7 +64,10 @@ impl ProcedureMainUI {
     /// #Arguments
     /// * `canvas` - 画布 / canvas
     fn draw_title(&self,canvas: &mut Canvas){
-        canvas.draw(&self._title_text,ggez::glam::Vec2::new(constant::PROC_MAIN_UI_TITLE_TEXT_POS_X,constant::PROC_MAIN_UI_TITLE_TEXT_POS_Y));
+        canvas.draw(
+            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.0), 
+            ggez::glam::Vec2::new(constant::WINDOW_WIDTH / 2.0, constant::PROC_MAIN_UI_TITLE_TEXT_POS_Y / 2.0)
+        );
     }
 }
 
@@ -82,29 +76,30 @@ impl Drawable for ProcedureMainUI {
         //draw title
         
         #[cfg(feature = "debug_log")]{
-            crate::tools::Logger::log_info_colored(&self, &format!("proc main ui ---> on draw..."), Color::Cyan);
+            crate::tools::Logger::log_info_colored("procedure_main_ui.on_draw()", &format!("calling..."), Color::Blue);
         }
         
-        let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::from([1.0, 1.0,1.0, 1.0]));
-        self.draw_title(&mut canvas);
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from([0.1, 0.2, 0.3, 1.0]));
+        canvas.draw(
+            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.),
+            ggez::glam::Vec2::new(1000., 100.),
+        );
+        // self.draw_title(&mut canvas);
         canvas.finish(ctx)?;
         
         return Ok(());
     }
 }
 
-/// 实现状态机接口 /
-/// implement state machine interface
+/// 实现状态机接口 / implement state machine interface
 impl TState for ProcedureMainUI{
-
     
     fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
         #[cfg(feature = "debug_log")]{
             crate::tools::Logger::log_info_colored(&self, &format!("proc main ui ---> on enter..."), Color::Cyan);
         }
     }
-
-
+    
     fn on_update(&mut self,_key_code: KeyCode) {
         
         match _key_code {

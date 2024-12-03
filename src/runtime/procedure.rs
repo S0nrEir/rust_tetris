@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use std::mem;
 use ggez::{Context, GameResult};
 use crate::define::enum_define::ProcedureEnum;
-use crate::runtime::procedure::procedure_main_ui::ProcedureMainUI;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::tools::Logger::*;
@@ -29,8 +28,7 @@ impl ProcedureComponent {
     /// #Arguments
     /// * `entry_procedure_index` - 初始流程枚举 / initial procedure enum
     /// * `procedure_vec` - 要包含的流程列表 / procedure list to include
-    pub fn new(entry_procedure_index:i32,
-               procedure_vec:Vec<Option<Box<dyn TState>>>) -> Self{
+    pub fn new(procedure_vec:Vec<Option<Box<dyn TState>>>) -> Self{
         
         let procedure_map = HashMap::new();
         let mut procedure_component = ProcedureComponent{
@@ -60,7 +58,7 @@ impl ProcedureComponent {
 
     ///创建一个不带任何流程的流程组件 / create a procedure component without any procedure
     pub fn new_as_empty() -> Self {
-        let mut procedure_component = ProcedureComponent{
+        let procedure_component = ProcedureComponent{
             _current_procedure:None,
             // _current_procedure_index : -1,
             _procedure_map : HashMap::new(),
@@ -138,31 +136,19 @@ impl ProcedureComponent {
         //获取新流程并进入 / get new procedure and enter
         let enum_type:i32 = procedure_to_switch.into();
         //remove返回被移除的值并且获取所有权，如果不存在返回none
-        if let Some(new_procedure) = self._procedure_map.remove(&enum_type){
+        return if let Some(new_procedure) = self._procedure_map.remove(&enum_type) {
             self._current_procedure = Some(new_procedure);
             let procedure_ref = self._current_procedure.as_mut().unwrap();
             procedure_ref.on_enter(enter_param);
             // self._current_procedure.as_ref().unwrap().on_enter(Some(Box::new(ProcedureMainUI::new())));
-            return true;
+            true
         }
-        else{
-            let err_msg = &format!("procedure not found , procedure:{}",enum_type);
-            log(self,err_msg,LogLevelEnum::Error);
-            return false;
+        else {
+            let err_msg = &format!("procedure not found , procedure:{}", enum_type);
+            log(self, err_msg, LogLevelEnum::Error);
+            false
         }
     }
-    
-    ///设置默认的procedure
-    // fn set_default_procedure(&mut self,procedure_type:i32,enter_param:Box<dyn ProcedureParam>){
-    //     if(!self._procedure_map.contains_key(&procedure_type)){
-    //         log(self,&format!("set default procedure faild,proc type : {}",procedure_type),LogLevelEnum::Error);
-    //         return;
-    //     }
-    //     self._current_procedure = self._procedure_map.remove(&procedure_type);
-    //     let proc_ref = self._current_procedure.as_mut().unwrap();
-    //     proc_ref.on_enter(enter_param);
-    //     // self._current_procedure.as_ref().unwrap().on_enter(enter_param);
-    // }
     
     /// 当前的流程阶段 / current procedure stage
     /// #Return
@@ -174,27 +160,26 @@ impl ProcedureComponent {
         return Some(self._current_procedure.as_ref().unwrap().get_state().into());
     }
     
-    /// 获取所有当前流程 / get all current procedures
+    /// 获取所有已添加的流程 / get all added procedures
     /// #Return
-    /// * `Vec<String>` - 流程名称列表 / procedure name list
-    //如果一个方法返回的引用没有指向任何参数，那么它的返回值只能是方法体内部创建的
-    //但这会导致一个问题：返回值将在方法结束时离开作用域并被Rust清理，这是一个悬垂引用
-    // pub fn all_procedure_name<'a>(&'a self) -> Vec<Cow<'a, str>>{
-    //     let mut procedure_name_list= Vec::new();
-    //     for (key,value) in self._procedure_map.iter(){
-    //         procedure_name_list.push(Cow::Borrowed(value.get_state().as_str()));
-    //     }
-    //     return procedure_name_list;
-    // }
-
+    /// * `Vec<String>` - 所有流程名称 / all procedure names
     pub fn all_procedure_name(&self) -> Vec<String>{
         let mut procedure_name_list : Vec<String> = Vec::new();
-        for (key,value) in self._procedure_map.iter(){
+        let values = self._procedure_map.values();
+        values.for_each(|value|{
             procedure_name_list.push(String::from(value.get_state().as_str()));
-        }
+        });
+        // for (key,value) in self._procedure_map.iter(){
+        //     procedure_name_list.push(String::from(value.get_state().as_str()));
+        // }
         return procedure_name_list;
     }
     
+    /// 绘制接口 / draw interface
+    /// #Arguments
+    /// * `ctx` - 上下文对象 / context object
+    /// #Return
+    /// * `GameResult` - 处理结果 / processing result
     pub fn on_draw(&mut self,ctx:&mut Context) -> GameResult{
         if let Some(curr_procedure) = &mut self._current_procedure{
             curr_procedure.on_draw(ctx);
@@ -204,22 +189,10 @@ impl ProcedureComponent {
     }
 }
 
-// impl Updatable for ProcedureComponent{
-//     fn on_update(&mut self,ctx:&mut Context,key_code:Option<KeyCode>){
-//         
-//         if let Some(curr_procedure) = &mut self._current_procedure{
-//             curr_procedure.on_update(key_code.unwrap_or(KeyCode::Escape));
-//         }
-//         #[cfg(feature = "debug_log")]{
-//             log(self,&format!("procedure component on update"),LogLevelEnum::Info);
-//         }
-//     }
-// }
-
 impl Tickable for ProcedureComponent {
     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
         #[cfg(feature = "debug_log")]{
-            log(self,&format!("procedure component on tick"),LogLevelEnum::Warning);
+            crate::tools::Logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
         }
     }
 }

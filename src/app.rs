@@ -1,23 +1,15 @@
 ﻿use std::{env, fmt, mem, path};
-use std::cell::RefCell;
-use std::path::{Component, Path, PathBuf};
-use std::rc::Rc;
-use colored::Color;
+use std::path::{Path, PathBuf};
 use ggez::{Context, event, GameResult, graphics::{self}};
 use ggez::conf::WindowMode;
 use ggez::input::keyboard::{KeyCode, KeyInput};
 use crate::constant;
 use crate::define::enum_define::ProcedureEnum;
-// use crate::runtime::app_components::AppComponents;
-// use crate::runtime::controller::Controller;
-use crate::runtime::event::EventComponent;
 use crate::runtime::input::InputComponent;
 use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing, ProcedureComponent};
 use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
-use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
-use crate::t_updatable::{Tickable, Updatable};
-use crate::tools::Logger::{log, log_info_colored, LogLevelEnum};
+use crate::t_updatable::Tickable;
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
@@ -38,11 +30,11 @@ impl App {
     
     /// 启动 / Start
     pub fn start_up(){
-        let mut context_builder = ggez::ContextBuilder::new(constant::APP_GAME_ID, constant::APP_AUTHOR_NAME)
+        let context_builder = ggez::ContextBuilder::new(constant::APP_GAME_ID, constant::APP_AUTHOR_NAME)
             //resources
             .add_resource_path(Self::get_config_resource_dir())
             //window
-            .window_mode(WindowMode::default().dimensions(constant::WINDOW_WIDTH, constant::WINDOW_HEIGHT));;
+            .window_mode(WindowMode::default().dimensions(constant::WINDOW_WIDTH, constant::WINDOW_HEIGHT));
         
         //get context builder & build app
         if let Ok((mut context, event_loop)) = context_builder.build() {
@@ -52,11 +44,7 @@ impl App {
                         Some(Box::new(procedure_playing::ProcedurePlaying::new())),
                         Some(Box::new(procedure_over::ProcedureOver::new()))];
             
-            if let Ok(mut app) = App::new(
-                    &mut context, 
-                    constant::RUNTIME_INITIAL_PROCEDURE_INDEX, 
-                    procedure_list)
-            {
+            if let Ok(mut app) = App::new(&mut context,procedure_list){
                 app._procedure_component.switch(ProcedureEnum::MainUI,Box::new(ProcedureMainUIParam::new()),None);
                 event::run(context, event_loop,app);
             }
@@ -71,16 +59,13 @@ impl App {
     /// * `Vec<Option<Rc<dyn TState>>` - 流程列表 / Procedure list
     /// # Return
     /// * `GameResult<App>` - App实例 / App instance
-    pub fn new(ctx: &mut Context,initial_proc_index:i32,procedure_list:Vec<Option<Box<dyn TState>>>) -> GameResult<App> {
-
-        Self::init_config_font(ctx);
+    pub fn new(ctx: &mut Context,procedure_list:Vec<Option<Box<dyn TState>>>) -> GameResult<App> {
+        let _ = Self::init_config_font(ctx);
         let app = App {
             _frames: 0,
              _elapsed_sec_from_last_frame: 0.0,
             // _app_components : AppComponents::new(initial_proc_index, procedure_list),
-            _procedure_component:ProcedureComponent::new(
-                initial_proc_index, 
-                procedure_list),
+            _procedure_component:ProcedureComponent::new(procedure_list),
             _input_component:InputComponent::new(),
             // _event_component:EventComponent::new(),
             // _controller:Controller::new(),
@@ -104,15 +89,14 @@ impl App {
     /// # Return
     /// * `PathBuf` - 指定的资源目录 / Specified resource directory
     fn get_config_resource_dir() -> PathBuf{
-        if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        return if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
             let mut path = path::PathBuf::from(manifest_dir);
             path.push(constant::RESOURCE_DIR);
-            return path;
-        }
-        else {
+            path
+        } else {
             let base_path = Path::new("./");
             let resource_path = base_path.join(constant::RESOURCE_DIR);
-            return path::PathBuf::from(resource_path);
+            path::PathBuf::from(resource_path)
         }
     }
     
@@ -120,8 +104,7 @@ impl App {
     /// # Arguments
     /// * `delta_time` - 时间间隔 / Time interval4
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
-        self._elapsed_sec_from_last_frame += (delta_time as f32); 
-        // self._procedure_component.on_update(ctx,key_code);
+        self._elapsed_sec_from_last_frame += (delta_time as f32);
         
         if(self._elapsed_sec_from_last_frame >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
             
@@ -137,7 +120,6 @@ impl App {
             
             mem::take(&mut self._elapsed_sec_from_last_frame);
             #[cfg(feature = "debug_log")]{
-                
             }
         }
         #[cfg(feature = "debug_log")]{
@@ -162,16 +144,14 @@ impl event::EventHandler<ggez::GameError> for App {
         }
         return  Ok(());
     }
-
+    
+    /// 绘制接口回调 / Draw interface callback
+    /// # Arguments
+    /// * `ctx` - 上下文对象 / Context object
+    /// # Return
+    /// * `GameResult` - 处理结果 / Processing result
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        let mut canvas = graphics::Canvas::from_frame(
-            ctx, 
-            graphics::Color::from([0.0, 0.0, 0.0, 1.0])
-        );
-        
-        self._procedure_component.on_draw(ctx);
-        
-        canvas.finish(ctx)?;
+        let _ = self._procedure_component.on_draw(ctx);
         return Ok(());
     }
     

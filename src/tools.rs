@@ -26,13 +26,14 @@
     /// * color - 颜色 / color
     pub fn log_info_colored<T:Debug>(sender:T,msg:&str,color: Color) {
         match color {
-            Color::White =>   { println!("{} : {}",format!("{:?}",sender).white(),      msg.white()); }
-            Color::Yellow =>  { println!("{} : {}",format!("{:?}",sender).yellow(),     msg.bright_yellow()); }
-            Color::Red =>     { println!("{} : {}",format!("{:?}",sender).red(),        msg.bright_red()); }
-            Color::Magenta => { println!("{} : {}",format!("{:?}",sender).bright_red(), msg.bright_magenta()); }
-            Color::Green =>   { println!("{} : {}",format!("{:?}",sender).bright_red(), msg.bright_green()); }
-            Color::Cyan  =>   { println!("{} : {}",format!("{:?}",sender).bright_red(), msg.bright_cyan()); }
-            _ =>              { println!("{} : {}",format!("{:?}",sender).white(),      msg.white()); }
+            Color::White =>   { println!("{} : {}",format!("{:?}",sender).white(),   msg.white()); }
+            Color::Yellow =>  { println!("{} : {}",format!("{:?}",sender).yellow(),  msg.bright_yellow()); }
+            Color::Red =>     { println!("{} : {}",format!("{:?}",sender).red(),     msg.bright_red()); }
+            Color::Magenta => { println!("{} : {}",format!("{:?}",sender).magenta(), msg.bright_magenta()); }
+            Color::Green =>   { println!("{} : {}",format!("{:?}",sender).green(),   msg.bright_green()); }
+            Color::Cyan  =>   { println!("{} : {}",format!("{:?}",sender).cyan(),    msg.bright_cyan()); }
+            Color::Blue  =>   { println!("{} : {}",format!("{:?}",sender).blue(),    msg.bright_blue()); }
+            _ =>              { println!("{} : {}",format!("{:?}",sender).white(),   msg.white()); }
         }
     }
     
