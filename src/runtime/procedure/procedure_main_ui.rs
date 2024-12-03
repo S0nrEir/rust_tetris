@@ -1,5 +1,6 @@
 ﻿use std::fmt::Debug;
 use ggez::{Context, GameResult, graphics};
+use ggez::glam::Vec2;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use ggez::input::keyboard::KeyCode;
@@ -16,7 +17,7 @@ const MAX_ITEM_COUNT:i8 = 2;
 pub struct ProcedureMainUI{
     _selected_item_index : i8,
     _param               : Option<ProcedureMainUIParam>,
-    _title_text          : Text
+    _title_text_offset   : Vec2
 }
 
 impl ProcedureMainUI {
@@ -25,9 +26,7 @@ impl ProcedureMainUI {
         return ProcedureMainUI{
             _selected_item_index : 0,
             _param               : None,
-            _title_text          : Text::new("Tetris").
-                set_font(constant::FONT_NAME).
-                set_scale(48.).clone()
+            _title_text_offset   : Vec2::new(-30., 0.)
         };
     }
     
@@ -64,24 +63,17 @@ impl ProcedureMainUI {
     fn draw_title(&self,canvas: &mut Canvas){
         canvas.draw(
             Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.0), 
-            ggez::glam::Vec2::new(constant::WINDOW_WIDTH / 2.0, constant::WINDOW_HEIGHT / 2.0)
+            Vec2::new(
+                constant::WINDOW_WIDTH / 2.0 + self._title_text_offset.x, 
+                constant::WINDOW_HEIGHT / 3.0 + self._title_text_offset.y)
         );
     }
 }
 
 impl Drawable for ProcedureMainUI {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK));
         //draw title
-        
-        #[cfg(feature = "debug_log")]{
-            crate::tools::logger::log_info_colored("procedure_main_ui.on_draw()", &format!("calling..."), Color::Blue);
-        }
-        
-        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from([0.1, 0.2, 0.3, 1.0]));
-        // canvas.draw(
-        //     Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.),
-        //     ggez::glam::Vec2::new(1000., 100.),
-        // );
         self.draw_title(&mut canvas);
         canvas.finish(ctx)?;
         
