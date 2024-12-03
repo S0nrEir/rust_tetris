@@ -5,7 +5,7 @@ use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use ggez::input::keyboard::KeyCode;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
-use crate::t_updatable::Drawable;
+use crate::t_updatable::{Drawable, Tickable};
 use ggez::graphics::{Canvas, Text};
 use crate::constant;
 
@@ -78,6 +78,11 @@ impl Drawable for ProcedureMainUI {
         canvas.finish(ctx)?;
         
         return Ok(());
+    }
+}
+
+impl Tickable for ProcedureMainUI {
+    fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
     }
 }
 

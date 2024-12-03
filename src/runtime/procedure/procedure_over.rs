@@ -3,7 +3,7 @@ use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
-use crate::t_updatable::Drawable;
+use crate::t_updatable::{Drawable, Tickable};
 
 ///游戏结束，结算，重开
 /// game over, settlement, restart
@@ -14,6 +14,11 @@ pub  struct ProcedureOver{
 impl Drawable for ProcedureOver {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
         todo!()
+    }
+}
+
+impl Tickable for ProcedureOver {
+    fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
     }
 }
 

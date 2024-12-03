@@ -5,7 +5,7 @@ use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::data::block_area::BlockArea;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
-use crate::t_updatable::Drawable;
+use crate::t_updatable::{Drawable, Tickable};
 // use crate::runtime::controller::Controller;
 
 ///游玩状态
@@ -18,6 +18,11 @@ pub  struct ProcedurePlaying{
 impl Drawable for ProcedurePlaying {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
         todo!()
+    }
+}
+
+impl Tickable for ProcedurePlaying {
+    fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
     }
 }
 

@@ -6,20 +6,20 @@ use crate::constant;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
-use crate::t_updatable::Drawable;
+use crate::t_updatable::{Drawable, Tickable};
 use crate::tools::logger::*;
 
 
 /// 测试绘制方块流程 / Test draw block process
 #[derive(Debug,Clone)]
 pub struct ProcedureTestDrawBlock{
-    
+    _tick_counter : u32,
 }
 
 impl ProcedureTestDrawBlock{
     pub fn new()-> Self{
         return  ProcedureTestDrawBlock{
-            
+            _tick_counter : 0,
         };
     }
     
@@ -30,16 +30,43 @@ impl ProcedureTestDrawBlock{
         );
     }
     fn draw_block(&mut self,canvas: &mut Canvas,ctx:&mut Context) -> GameResult{
-        let mesh_rect = Mesh::new_rectangle(
+        let mesh_rect_1 = Mesh::new_rectangle(
             ctx,
             // DrawMode::Stroke(StrokeOptions::default()),
             DrawMode::fill(),
             //指定位置和长宽
-            graphics::Rect::new(300.0, 0.0, 100.0, 100.0),
+            graphics::Rect::new(0.0, 0.0, 100.0, 100.0),
             Color::WHITE)?;
-        canvas.draw(&mesh_rect, DrawParam::default().dest(Vec2::new(300.0, 100.0)));
-        
+
+        let mesh_rect_2 = Mesh::new_rectangle(
+            ctx,
+            // DrawMode::Stroke(StrokeOptions::default()),
+            DrawMode::fill(),
+            //指定位置和长宽
+            graphics::Rect::new(0.0, 0.0, 100.0, 100.0),
+            Color::WHITE)?;
+        canvas.draw(&mesh_rect_1, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
+        //方块间距离为3就差不多
+        canvas.draw(&mesh_rect_1, DrawParam::default().dest(Vec2::new(103.0, 0.0)));
         return Ok(());
+    }
+    fn draw_another_block(&mut self,canvas: &mut Canvas,ctx:&mut Context) -> GameResult{
+        let mesh_rect_1 = Mesh::new_rectangle(
+            ctx,
+            // DrawMode::Stroke(StrokeOptions::default()),
+            DrawMode::fill(),
+            //指定位置和长宽
+            graphics::Rect::new(0.0, 0.0, 100.0, 100.0),
+            Color::RED)?;
+        canvas.draw(&mesh_rect_1, DrawParam::default().dest(Vec2::new(103.0, 0.0)));
+        return Ok(());
+    }
+}
+
+impl Tickable for ProcedureTestDrawBlock {
+    fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
+        log_info_colored("ProcedureTestDrawBlock.on_tick()", &format!("tick counter:{}",self._tick_counter), colored::Color::White);
+        self._tick_counter += 1;
     }
 }
 
@@ -66,9 +93,15 @@ impl Drawable for ProcedureTestDrawBlock {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
         //canvas坐标起始从左上角开始
         self.draw_text(&mut canvas);
-        self.draw_block(&mut canvas, ctx);
-        canvas.finish(ctx)?;
         
+        if(self._tick_counter < 10){
+            self.draw_block(&mut canvas, ctx);
+        }
+        else{
+            self.draw_another_block(&mut canvas, ctx);
+        }
+        
+        canvas.finish(ctx)?; 
         return Ok(());
     }
 }

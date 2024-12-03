@@ -196,6 +196,9 @@ impl ProcedureComponent {
 
 impl Tickable for ProcedureComponent {
     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
+        if let Some(curr_procedure) = &mut self._current_procedure{
+            curr_procedure.on_tick(ctx,delta_time,interval);
+        }
         #[cfg(feature = "debug_log")]{
             crate::tools::logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
         }
