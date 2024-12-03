@@ -39,6 +39,7 @@ impl App {
         
         //get context builder & build app
         if let Ok((mut context, event_loop)) = context_builder.build() {
+            
             #[cfg(feature = "debug_draw_block")]{
                 let procedure_list: Vec<Option<Box<dyn TState>>> = vec![
                     Some(Box::new(ProcedureTestDrawBlock::new()))];
