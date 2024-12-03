@@ -26,7 +26,7 @@ impl ProcedureMainUI {
         return ProcedureMainUI{
             _selected_item_index : 0,
             _param               : None,
-            _title_text_offset   : Vec2::new(-30., 0.)
+            _title_text_offset   : Vec2::new(-80., 0.)
         };
     }
     
@@ -62,10 +62,10 @@ impl ProcedureMainUI {
     /// * `canvas` - 画布 / canvas
     fn draw_title(&self,canvas: &mut Canvas){
         canvas.draw(
-            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(48.0), 
+            Text::new("Tetris").set_font(constant::FONT_NAME).set_scale(60.), 
             Vec2::new(
                 constant::WINDOW_WIDTH / 2.0 + self._title_text_offset.x, 
-                constant::WINDOW_HEIGHT / 3.0 + self._title_text_offset.y)
+                constant::WINDOW_HEIGHT / 4.0 + self._title_text_offset.y)
         );
     }
 }
