@@ -2,11 +2,13 @@
 pub mod procedure_playing;
 pub mod procedure_over;
 pub mod t_procedure_param;
+pub mod procedure_test_draw_block;
 
 use std::collections::HashMap;
 use std::mem;
 use ggez::{Context, GameResult};
 use crate::define::enum_define::ProcedureEnum;
+use crate::runtime::procedure::procedure_test_draw_block::ProcedureTestDrawBlock;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::tools::logger::*;
@@ -104,6 +106,9 @@ impl ProcedureComponent {
             ProcedureEnum::Over => {
                 insert_succ = self._procedure_map.insert(enum_type,Box::new(procedure_over::ProcedureOver::new()));
             },
+            ProcedureEnum::TestDrawBlock => {
+                insert_succ = self._procedure_map.insert(enum_type,Box::new(ProcedureTestDrawBlock::new()));
+            }
         }
         return insert_succ.is_some();
     }

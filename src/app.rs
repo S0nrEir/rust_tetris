@@ -8,6 +8,7 @@ use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::input::InputComponent;
 use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing, ProcedureComponent};
 use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
+use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBlock, ProcedureTestDrawBlockParam};
 use crate::t_state::TState;
 use crate::t_updatable::Tickable;
 
@@ -38,12 +39,23 @@ impl App {
         
         //get context builder & build app
         if let Ok((mut context, event_loop)) = context_builder.build() {
+            #[cfg(feature = "debug_draw_block")]{
+                let procedure_list: Vec<Option<Box<dyn TState>>> = vec![
+                    Some(Box::new(ProcedureTestDrawBlock::new()))];
+
+                if let Ok(mut app) = App::new(&mut context,procedure_list){
+                    app._procedure_component.switch(ProcedureEnum::TestDrawBlock,Box::new(ProcedureTestDrawBlockParam::new()),None);
+                    event::run(context, event_loop,app);
+                }
+                return;
+            }
+            
             //initial procedures
             let procedure_list: Vec<Option<Box<dyn TState>>> = vec![
-                        Some(Box::new(procedure_main_ui::ProcedureMainUI::new())),
-                        Some(Box::new(procedure_playing::ProcedurePlaying::new())),
-                        Some(Box::new(procedure_over::ProcedureOver::new()))];
-            
+                Some(Box::new(procedure_main_ui::ProcedureMainUI::new())),
+                Some(Box::new(procedure_playing::ProcedurePlaying::new())),
+                Some(Box::new(procedure_over::ProcedureOver::new()))];
+
             if let Ok(mut app) = App::new(&mut context,procedure_list){
                 app._procedure_component.switch(ProcedureEnum::MainUI,Box::new(ProcedureMainUIParam::new()),None);
                 event::run(context, event_loop,app);

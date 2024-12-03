@@ -8,9 +8,11 @@ pub enum ProcedureEnum {
     ///主界面 / MainUI
     MainUI = 0,
     ///游玩中 / Playing
-    Playing = 1,
+    Playing,
     ///游戏结束 / Game Over
-    Over = 2,
+    Over,
+    /// 测试绘制方块 / Test draw block
+    TestDrawBlock
 }
 
 impl ProcedureEnum {
@@ -21,6 +23,7 @@ impl ProcedureEnum {
             ProcedureEnum::MainUI => "MainUI",
             ProcedureEnum::Playing => "Playing",
             ProcedureEnum::Over => "Over",
+            ProcedureEnum::TestDrawBlock => "TestDrawBlock"
         }
     }
 }
