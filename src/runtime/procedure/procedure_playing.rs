@@ -1,18 +1,18 @@
-﻿use std::any::Any;
-use ggez::{Context, GameResult};
+﻿use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
-use crate::runtime::data::block_area::BlockArea;
+use crate::runtime::data::play_field::PlayField;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::{Drawable, Tickable};
-// use crate::runtime::controller::Controller;
+use crate::runtime::data::playing_data::PlayingData;
 
 ///游玩状态
 /// playing state
 #[derive(Debug)]
 pub  struct ProcedurePlaying{
-    _block_area: BlockArea
+    _block_area: PlayField,
+    _player_data : PlayingData,
 }
 
 impl Drawable for ProcedurePlaying {
@@ -48,7 +48,8 @@ impl ProcedurePlaying {
     //--------new--------
     pub fn new() -> Self{
         return ProcedurePlaying{
-            _block_area:BlockArea::new()
+            _block_area: PlayField::new(),
+            _player_data:PlayingData::new(),
         };
     }
 }

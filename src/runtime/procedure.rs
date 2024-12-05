@@ -125,7 +125,7 @@ impl ProcedureComponent {
 
         //离开原有流程，并且将其保存起来 / leave the original procedure and save it
         //ps 对于第一次理解所有权概念的人来说真是折磨!! / ps for those who first understand the concept of ownership, it is really torture!!
-        if let Some(procedure_to_leave) = mem::replace(&mut self._current_procedure,None){
+        if let Some(mut procedure_to_leave) = mem::replace(&mut self._current_procedure,None){
             let procedure_enum = procedure_to_leave.get_state();
             procedure_to_leave.on_leave(leave_param);
             //如果k已经存在则更新并返回旧值，如果是全新的则返回none
