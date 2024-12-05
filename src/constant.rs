@@ -49,4 +49,4 @@ pub const BLOCK_PIXEL_SIZE : u8 = 10;
 /// 方块间的像素间隔 / Pixel spacing between blocks
 pub const BLOCK_PIXEL_SPACING : u8 = 3;
 /// 方块放置区域初始化的像素位置 / Pixel position of block placement area initialization 
-pub const BLOCK_INIT_START_PIXEL_POS : (f32,f32) = (100.0,100.0);
+pub const BLOCK_INIT_START_POS: (f32, f32) = (100.0, 100.0);

@@ -36,7 +36,7 @@ impl TState for ProcedurePlaying{
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
-        println!("ProcedurePlaying exit");
+        self._block_area.clear();
     }
 
     fn get_state(&self) -> ProcedureEnum {
