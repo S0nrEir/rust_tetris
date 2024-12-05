@@ -35,7 +35,7 @@ impl TState for ProcedurePlaying{
         println!("ProcedurePlaying update");
     }
 
-    fn on_leave(&self,_param:Option<Box<dyn ProcedureParam>>) {
+    fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
         println!("ProcedurePlaying exit");
     }
 

@@ -111,7 +111,7 @@ impl TState for ProcedureMainUI{
         }
     }
 
-    fn on_leave(&self,_param:Option<Box<dyn ProcedureParam>>) {
+    fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
     }
     
     fn get_state(&self) -> ProcedureEnum {

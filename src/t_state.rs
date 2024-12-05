@@ -11,6 +11,6 @@ pub trait TState : Debug+Drawable+Tickable {
     fn on_enter(&mut self,param:Box<dyn ProcedureParam>);
     // fn on_enter(&mut self,param:Option<Box<dyn ProcedureParam>>);
     fn on_update(&mut self,key_code: KeyCode);
-    fn on_leave(&self,param:Option<Box<dyn ProcedureParam>>);
+    fn on_leave(&mut self,param:Option<Box<dyn ProcedureParam>>);
     fn get_state(&self) -> ProcedureEnum;
 }
