@@ -3,7 +3,7 @@ pub mod event;
 pub mod input;
 pub mod controller;
 pub(crate) mod app_components;
-mod data;
+pub(crate) mod data;
 
 // mod procedure;
 // mod event;

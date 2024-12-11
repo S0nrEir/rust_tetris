@@ -1,4 +1,5 @@
-﻿pub mod logger {
+﻿//---------------------logger---------------------
+pub mod logger {
     use std::fmt::Debug;
     use colored::*;
     use num_enum::IntoPrimitive;
@@ -61,5 +62,14 @@
         Error,
         ///致命 / fatal
         Fatal
+    }
+}
+
+/// 方块相关工具类
+pub mod tetri_tools{
+    use crate::runtime::data::tetrimino::Tetrimino;
+
+    /// 生成一个随机方块 / Generate a random tetrimino
+    pub fn gen_rand_tetrimino() -> Tetrimino {
     }
 }
