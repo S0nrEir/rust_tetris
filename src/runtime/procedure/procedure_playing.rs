@@ -1,4 +1,5 @@
-﻿use ggez::{Context, GameResult};
+﻿use colored::Color;
+use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
@@ -6,6 +7,7 @@ use crate::runtime::data::play_field::PlayField;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::{Drawable, Tickable};
 use crate::runtime::data::playing_data::PlayingData;
+use crate::tools::logger::*;
 
 ///游玩状态
 /// playing state
@@ -13,6 +15,7 @@ use crate::runtime::data::playing_data::PlayingData;
 pub  struct ProcedurePlaying{
     _block_area: PlayField,
     _player_data : PlayingData,
+    _curr_input : KeyCode
 }
 
 impl Drawable for ProcedurePlaying {
@@ -28,11 +31,12 @@ impl Tickable for ProcedurePlaying {
 
 impl TState for ProcedurePlaying{
     fn on_enter(&mut self,_param:Box<dyn ProcedureParam>){
-        println!("ProcedurePlaying enter");
+        log_info_colored("ProcedurePlaying","enter",Color::Cyan);
+        self._block_area.init_field_data();
     }
 
     fn on_update(&mut self,key_code: KeyCode) {
-        println!("ProcedurePlaying update");
+        self._curr_input = key_code;
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -50,6 +54,7 @@ impl ProcedurePlaying {
         return ProcedurePlaying{
             _block_area: PlayField::new(),
             _player_data:PlayingData::new(),
+            _curr_input:KeyCode::F12
         };
     }
 }

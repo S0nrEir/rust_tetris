@@ -41,12 +41,12 @@ pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
 
 //------------------------------block------------------------------
 /// 横向可容纳的方块的最大数量 / Maximum number of blocks that can be accommodated horizontally
-pub const BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT : u8 = 10;
+pub const BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT : usize = 10;
 /// 纵向可容纳的方块的最大数量 / Maximum number of blocks that can be accommodated vertically
-pub const BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT : u8 = 20;
-/// 单个方块的像素尺寸 / Pixel size of a single block
-pub const BLOCK_PIXEL_SIZE : u8 = 10;
-/// 方块间的像素间隔 / Pixel spacing between blocks
-pub const BLOCK_PIXEL_SPACING : u8 = 3;
-/// 方块放置区域初始化的像素位置 / Pixel position of block placement area initialization 
-pub const BLOCK_INIT_START_POS: (f32, f32) = (100.0, 100.0);
+pub const BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT : usize = 20;
+/// 单个方块的尺寸 / size of a single block
+pub const BLOCK_SIZE : u8 = 10;
+/// 方块间的坐标间隔 / spacing between blocks
+pub const BLOCK_COORD_SPACING : u8 = 3;
+/// 方块放置区域初始化的坐标 / init start coordinate
+pub const BLOCK_INIT_START_COORD: (f32, f32) = (100.0, 100.0);

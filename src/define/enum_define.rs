@@ -27,3 +27,40 @@ impl ProcedureEnum {
         }
     }
 }
+
+/// 方块类型 / Block type
+#[derive(Copy,Clone,Debug)]
+pub enum TetriminoTypeEnum{
+    ///I
+    Stick = 0,
+    ///J
+    LeftGun,
+    ///L
+    RightGun,
+    ///O
+    Square,
+    ///S
+    RightSnake,
+    ///Z
+    LeftSnake,
+    ///T
+    T,
+    /// 未知
+    None = 999,
+}
+
+impl TetriminoTypeEnum {
+    ///将枚举转换为&str / Convert enum to &str
+    pub fn as_str(&self) -> &str {
+        match self {
+            TetriminoTypeEnum::Stick => "Stick",
+            TetriminoTypeEnum::LeftGun => "LeftGun",
+            TetriminoTypeEnum::RightGun => "RightGun",
+            TetriminoTypeEnum::Square => "Square", 
+            TetriminoTypeEnum::RightSnake => "RightSnake",
+            TetriminoTypeEnum::LeftSnake => "LeftSnake",
+            TetriminoTypeEnum::T => "T",
+            TetriminoTypeEnum::None => "None"
+        }
+    }
+}
