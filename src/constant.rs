@@ -50,3 +50,5 @@ pub const BLOCK_SIZE : u8 = 10;
 pub const BLOCK_COORD_SPACING : u8 = 3;
 /// 方块放置区域初始化的坐标 / init start coordinate
 pub const BLOCK_INIT_START_COORD: (f32, f32) = (100.0, 100.0);
+/// 一个方块最大的占用范围
+pub const BLOCK_MAX_OCCUPIED : usize = 4;

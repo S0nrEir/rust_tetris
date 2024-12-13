@@ -67,9 +67,20 @@ pub mod logger {
 
 /// 方块相关工具类
 pub mod tetri_tools{
+    use rand::Rng;
+    use crate::define::enum_define::TetriminoTypeEnum;
     use crate::runtime::data::tetrimino::Tetrimino;
 
     /// 生成一个随机方块 / Generate a random tetrimino
     pub fn gen_rand_tetrimino() -> Tetrimino {
+        let mut rand = rand::thread_rng();
+        let rand_teri_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
+        let teri =  Tetrimino::new(rand_teri_type);
+        if(!teri.is_none()){
+            return teri.unwrap();
+        }
+        else{
+            panic!("gen_rand_tetrimino error");
+        }
     }
 }

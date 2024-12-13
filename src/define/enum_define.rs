@@ -1,7 +1,10 @@
-﻿use num_enum::IntoPrimitive;
+﻿use std::ops::Range;
+use num_enum::{FromPrimitive, IntoPrimitive, TryFromPrimitive};
+
+const START_INDEX : isize = 0;
+const END_INDEX   : isize = 7;
 
 ///状态枚举
-
 #[derive(IntoPrimitive,Copy,Clone,Debug)]
 #[repr(i32)]
 pub enum ProcedureEnum {
@@ -29,10 +32,11 @@ impl ProcedureEnum {
 }
 
 /// 方块类型 / Block type
-#[derive(Copy,Clone,Debug)]
+#[derive(TryFromPrimitive,Copy,Clone,Debug)]
+#[repr(isize)]
 pub enum TetriminoTypeEnum{
     ///I
-    Stick = 0,
+    Stick = START_INDEX,
     ///J
     LeftGun,
     ///L
@@ -46,7 +50,7 @@ pub enum TetriminoTypeEnum{
     ///T
     T,
     /// 未知
-    None = 999,
+    None = END_INDEX,
 }
 
 impl TetriminoTypeEnum {
@@ -62,5 +66,10 @@ impl TetriminoTypeEnum {
             TetriminoTypeEnum::T => "T",
             TetriminoTypeEnum::None => "None"
         }
+    }
+    
+    /// 获取枚举的最小/最大范围值 / Get the minimum/maximum range value of the enumeration
+    pub fn get_min_max_range() -> Range<isize>{
+        return (START_INDEX..END_INDEX);
     }
 }
