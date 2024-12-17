@@ -1,6 +1,7 @@
 ﻿use colored::Color;
 use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
+use crate::constant;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::data::play_field::PlayField;
@@ -13,9 +14,16 @@ use crate::tools::logger::*;
 /// playing state
 #[derive(Debug)]
 pub  struct ProcedurePlaying{
-    _block_area: PlayField,
-    _player_data : PlayingData,
-    _curr_input : KeyCode
+    /// 游玩区域数据 / play field data
+    _play_field     : PlayField,
+    /// 玩家数据 / player data
+    _player_data    : PlayingData,
+    /// 当前的按键输入 / current key input
+    _curr_input     : KeyCode,
+    /// 可处理输入的时间间隔 / time interval that can handle input
+    _input_interval : f32,
+    // tick轮询时间 / tick polling time
+    _delta_tick : f32,
 }
 
 impl Drawable for ProcedurePlaying {
@@ -26,21 +34,38 @@ impl Drawable for ProcedurePlaying {
 
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
+        
     }
 }
 
 impl TState for ProcedurePlaying{
     fn on_enter(&mut self,_param:Box<dyn ProcedureParam>){
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
-        self._block_area.init_field_data();
+        self._play_field.init_field_data();
+        self._play_field.init_tetrimino();
+        self._input_interval = 0.;
+        self._delta_tick = 0.;
     }
 
-    fn on_update(&mut self,key_code: KeyCode) {
+    fn on_update(&mut self,ctx:&mut Context,key_code: KeyCode,delta_sec:f32) {
         self._curr_input = key_code;
+        self._input_interval += delta_sec;
+        
+        //处理输入 / handle input
+        if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL){
+            
+        }
+        
+        // main tick
+        self._delta_tick += delta_sec;
+        if(self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
+            self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
+            self._delta_tick = 0.;
+        }
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
-        self._block_area.clear();
+        self._play_field.clear();
     }
 
     fn get_state(&self) -> ProcedureEnum {
@@ -52,9 +77,11 @@ impl ProcedurePlaying {
     //--------new--------
     pub fn new() -> Self{
         return ProcedurePlaying{
-            _block_area: PlayField::new(),
+            _play_field: PlayField::new(),
             _player_data:PlayingData::new(),
-            _curr_input:KeyCode::F12
+            _curr_input:KeyCode::F12,
+            _input_interval : 0.,
+            _delta_tick : 0.
         };
     }
 }

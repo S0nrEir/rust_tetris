@@ -7,6 +7,8 @@ pub mod procedure_test_draw_block;
 use std::collections::HashMap;
 use std::mem;
 use ggez::{Context, GameResult};
+use ggez::input::keyboard::KeyCode;
+use ggez::winit::event::VirtualKeyCode;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::procedure_test_draw_block::ProcedureTestDrawBlock;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
@@ -194,13 +196,27 @@ impl ProcedureComponent {
     }
 }
 
-impl Tickable for ProcedureComponent {
-    fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
+// impl Tickable for ProcedureComponent {
+//     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
+//         if let Some(curr_procedure) = &mut self._current_procedure{
+//             curr_procedure.on_tick(ctx,delta_time,interval);
+//         }
+//         #[cfg(feature = "debug_log")]{
+//             crate::tools::logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
+//         }
+//     }
+// }
+
+impl Updatable for ProcedureComponent {
+    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) {
         if let Some(curr_procedure) = &mut self._current_procedure{
-            curr_procedure.on_tick(ctx,delta_time,interval);
-        }
-        #[cfg(feature = "debug_log")]{
-            crate::tools::logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
+            if let Some(key_code) = key_code {
+                curr_procedure.on_update(ctx,key_code,delta_sec);
+            }
+            else{
+                //todo:当没有输入的时候应该传入none，而不是传入一个默认值，这里之后要调整
+                curr_procedure.on_update(ctx,VirtualKeyCode::F12,delta_sec)
+            }
         }
     }
 }

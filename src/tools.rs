@@ -72,15 +72,10 @@ pub mod tetri_tools{
     use crate::runtime::data::tetrimino::Tetrimino;
 
     /// 生成一个随机方块 / Generate a random tetrimino
-    pub fn gen_rand_tetrimino() -> Tetrimino {
+    pub fn gen_rand_tetrimino() -> Option<Tetrimino> {
         let mut rand = rand::thread_rng();
         let rand_teri_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
         let teri =  Tetrimino::new(rand_teri_type);
-        if(!teri.is_none()){
-            return teri.unwrap();
-        }
-        else{
-            panic!("gen_rand_tetrimino error");
-        }
+        return teri;
     }
 }

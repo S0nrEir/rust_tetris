@@ -75,7 +75,7 @@ impl TState for ProcedureTestDrawBlock{
         log_info_colored("ProcedureTestDrawBlock.on_enter()", &"calling".to_string(), colored::Color::Cyan);
     }
 
-    fn on_update(&mut self, key_code: KeyCode) {
+    fn on_update(&mut self,ctx:&mut Context, key_code: KeyCode,delta_sec:f32) {
     }
 
     fn on_leave(&mut self, param: Option<Box<dyn ProcedureParam>>) {

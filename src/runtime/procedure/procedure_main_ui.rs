@@ -95,7 +95,7 @@ impl TState for ProcedureMainUI{
         }
     }
     
-    fn on_update(&mut self,_key_code: KeyCode) {
+    fn on_update(&mut self,ctx:&mut Context,_key_code: KeyCode,delta_sec:f32) {
         
         match _key_code {
             KeyCode::Return => {

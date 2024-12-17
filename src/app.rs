@@ -10,14 +10,14 @@ use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_pla
 use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
 use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBlock, ProcedureTestDrawBlockParam};
 use crate::t_state::TState;
-use crate::t_updatable::Tickable;
+use crate::t_updatable::{Tickable, Updatable};
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
     ///帧率 / Frame rate
     _frames : usize,
     /// 上一帧到当前帧的时间间隔 / Time interval from last frame to current frame
-     _elapsed_sec_from_last_frame: f32,
+     _delta_sec: f32,
     ///组件集合 / Component collection
     // _app_components : AppComponents,
     _procedure_component: ProcedureComponent,
@@ -76,7 +76,7 @@ impl App {
         let _ = Self::init_config_font(ctx);
         let app = App {
             _frames: 0,
-             _elapsed_sec_from_last_frame: 0.0,
+            _delta_sec: 0.0,
             // _app_components : AppComponents::new(initial_proc_index, procedure_list),
             _procedure_component:ProcedureComponent::new(procedure_list),
             _input_component:InputComponent::new(),
@@ -117,25 +117,9 @@ impl App {
     /// # Arguments
     /// * `delta_time` - 时间间隔 / Time interval4
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
-        self._elapsed_sec_from_last_frame += (delta_time as f32);
-        
-        if(self._elapsed_sec_from_last_frame >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
-            
-            // #[cfg(feature = "debug_log")]{
-            //     crate::tools::logger::log_info_colored(&self, &format!("main tick called"), Color::Cyan);
-            // }
-            
-            self._procedure_component.on_tick(
-                ctx,
-                self._elapsed_sec_from_last_frame, 
-                constant::APP_MAIN_TICK_INTERVAL_1_SEC
-            );
-            
-            mem::take(&mut self._elapsed_sec_from_last_frame);
-            #[cfg(feature = "debug_log")]{
-            }
-        }
+        self._procedure_component.on_update(ctx,key_code,delta_time as f32);
         #[cfg(feature = "debug_log")]{
+            
         }
     }
 }

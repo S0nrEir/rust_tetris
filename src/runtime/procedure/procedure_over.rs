@@ -29,7 +29,7 @@ impl TState for ProcedureOver{
         println!("ProcedureOver enter");
     }
 
-    fn on_update(&mut self,key_code: KeyCode) {
+    fn on_update(&mut self,ctx:&mut Context,key_code: KeyCode,delta_sec:f32) {
         println!("ProcedureOver update");
     }
 
