@@ -1,4 +1,5 @@
-﻿use ggez::{Context, GameResult};
+﻿use std::any::Any;
+use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
@@ -29,8 +30,9 @@ impl TState for ProcedureOver{
         println!("ProcedureOver enter");
     }
 
-    fn on_update(&mut self,ctx:&mut Context,key_code: KeyCode,delta_sec:f32) {
-        println!("ProcedureOver update");
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
+        // println!("ProcedureOver update");
+        return Some(ProcedureEnum::Over);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -54,4 +56,7 @@ pub struct ProcedureOverParam{
 }
 
 impl ProcedureParam for ProcedureOverParam{
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        return self;
+    }
 }

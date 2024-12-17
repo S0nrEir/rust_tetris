@@ -11,19 +11,16 @@ use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
 use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBlock, ProcedureTestDrawBlockParam};
 use crate::t_state::TState;
 use crate::t_updatable::{Tickable, Updatable};
+use crate::tools::logger::log;
+use crate::tools::logger::LogLevelEnum::Fatal;
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
     ///帧率 / Frame rate
     _frames : usize,
-    /// 上一帧到当前帧的时间间隔 / Time interval from last frame to current frame
-     _delta_sec: f32,
-    ///组件集合 / Component collection
-    // _app_components : AppComponents,
+    _delta_sec: f32,
     _procedure_component: ProcedureComponent,
     _input_component: InputComponent,
-    // _event_component: EventComponent,
-    // _controller: Controller,
 }
 
 //实现EventHandler trait以注册事件回调，以及子模块 / Implement the EventHandler trait to register event callbacks, as well as submodules
@@ -77,11 +74,8 @@ impl App {
         let app = App {
             _frames: 0,
             _delta_sec: 0.0,
-            // _app_components : AppComponents::new(initial_proc_index, procedure_list),
             _procedure_component:ProcedureComponent::new(procedure_list),
             _input_component:InputComponent::new(),
-            // _event_component:EventComponent::new(),
-            // _controller:Controller::new(),
         };
         
         return Ok(app);
@@ -117,7 +111,18 @@ impl App {
     /// # Arguments
     /// * `delta_time` - 时间间隔 / Time interval4
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
-        self._procedure_component.on_update(ctx,key_code,delta_time as f32);
+        let old_procedure = self._procedure_component.curr_procedure();
+        let new_procedure = self._procedure_component.on_update(ctx,key_code,delta_time as f32);
+        if(!old_procedure.is_none() && !new_procedure.is_none()){
+            let old_procedure = old_procedure.unwrap();
+            let new_procedure = new_procedure.unwrap();
+            if(old_procedure != new_procedure){
+                self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
+            }
+        }
+        
+        log("app.rs","main_update() ---> return a none procedure enum!",Fatal);
+        panic!();
         #[cfg(feature = "debug_log")]{
             
         }

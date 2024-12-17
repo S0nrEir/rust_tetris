@@ -103,9 +103,11 @@ impl InputComponent {
             ProcedureEnum::Over => {
                 self._input_filter = InputComponent::over_input_filter;
             },
-            ProcedureEnum::TestDrawBlock => {
-                self._input_filter = InputComponent::not_impl_input_filter;
-            },
+            _ => {self._input_filter = InputComponent::not_impl_input_filter;
+            }
+            // ProcedureEnum::TestDrawBlock => {
+            //     self._input_filter = InputComponent::not_impl_input_filter;
+            // },
         }
     }
     

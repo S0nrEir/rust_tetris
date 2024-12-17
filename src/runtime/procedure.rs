@@ -3,6 +3,7 @@ pub mod procedure_playing;
 pub mod procedure_over;
 pub mod t_procedure_param;
 pub mod procedure_test_draw_block;
+mod procedure_test_draw_text;
 
 use std::collections::HashMap;
 use std::mem;
@@ -11,6 +12,7 @@ use ggez::input::keyboard::KeyCode;
 use ggez::winit::event::VirtualKeyCode;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::procedure_test_draw_block::ProcedureTestDrawBlock;
+use crate::runtime::procedure::procedure_test_draw_text::ProcedureTestDrawText;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::tools::logger::*;
@@ -111,6 +113,9 @@ impl ProcedureComponent {
             ProcedureEnum::TestDrawBlock => {
                 insert_succ = self._procedure_map.insert(enum_type,Box::new(ProcedureTestDrawBlock::new()));
             }
+            ProcedureEnum::TestDrawText => {
+                insert_succ = self._procedure_map.insert(enum_type,Box::new(ProcedureTestDrawText::new()));
+            }
         }
         return insert_succ.is_some();
     }
@@ -191,7 +196,6 @@ impl ProcedureComponent {
         if let Some(curr_procedure) = &mut self._current_procedure{
             curr_procedure.on_draw(ctx);
         }
-        
         return Ok(());
     }
 }
@@ -208,15 +212,12 @@ impl ProcedureComponent {
 // }
 
 impl Updatable for ProcedureComponent {
-    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) {
+    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum> {
         if let Some(curr_procedure) = &mut self._current_procedure{
-            if let Some(key_code) = key_code {
-                curr_procedure.on_update(ctx,key_code,delta_sec);
-            }
-            else{
-                //todo:当没有输入的时候应该传入none，而不是传入一个默认值，这里之后要调整
-                curr_procedure.on_update(ctx,VirtualKeyCode::F12,delta_sec)
-            }
+            return curr_procedure.on_update(ctx,key_code,delta_sec);
+        }
+        else { 
+            return None;
         }
     }
 }

@@ -5,7 +5,7 @@ const START_INDEX : isize = 0;
 const END_INDEX   : isize = 7;
 
 ///状态枚举
-#[derive(IntoPrimitive,Copy,Clone,Debug)]
+#[derive(IntoPrimitive,Copy,Clone,Debug,PartialEq)]
 #[repr(i32)]
 pub enum ProcedureEnum {
     ///主界面 / MainUI
@@ -15,7 +15,9 @@ pub enum ProcedureEnum {
     ///游戏结束 / Game Over
     Over,
     /// 测试绘制方块 / Test draw block
-    TestDrawBlock
+    TestDrawBlock,
+    /// 测试绘制文本 / Test draw text
+    TestDrawText,
 }
 
 impl ProcedureEnum {
@@ -26,7 +28,8 @@ impl ProcedureEnum {
             ProcedureEnum::MainUI => "MainUI",
             ProcedureEnum::Playing => "Playing",
             ProcedureEnum::Over => "Over",
-            ProcedureEnum::TestDrawBlock => "TestDrawBlock"
+            ProcedureEnum::TestDrawBlock => "TestDrawBlock",
+            ProcedureEnum::TestDrawText => "TestDrawText",
         }
     }
 }

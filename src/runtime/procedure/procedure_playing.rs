@@ -1,4 +1,5 @@
-﻿use colored::Color;
+﻿use std::any::Any;
+use colored::Color;
 use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
 use crate::constant;
@@ -19,7 +20,7 @@ pub  struct ProcedurePlaying{
     /// 玩家数据 / player data
     _player_data    : PlayingData,
     /// 当前的按键输入 / current key input
-    _curr_input     : KeyCode,
+    _curr_input     : Option<KeyCode>,
     /// 可处理输入的时间间隔 / time interval that can handle input
     _input_interval : f32,
     // tick轮询时间 / tick polling time
@@ -39,7 +40,7 @@ impl Tickable for ProcedurePlaying {
 }
 
 impl TState for ProcedurePlaying{
-    fn on_enter(&mut self,_param:Box<dyn ProcedureParam>){
+    fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
         self._play_field.init_field_data();
         self._play_field.init_tetrimino();
@@ -47,7 +48,7 @@ impl TState for ProcedurePlaying{
         self._delta_tick = 0.;
     }
 
-    fn on_update(&mut self,ctx:&mut Context,key_code: KeyCode,delta_sec:f32) {
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
         self._curr_input = key_code;
         self._input_interval += delta_sec;
         
@@ -62,6 +63,8 @@ impl TState for ProcedurePlaying{
             self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
             self._delta_tick = 0.;
         }
+        self._curr_input = None;
+        return Some(ProcedureEnum::Playing);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -79,7 +82,7 @@ impl ProcedurePlaying {
         return ProcedurePlaying{
             _play_field: PlayField::new(),
             _player_data:PlayingData::new(),
-            _curr_input:KeyCode::F12,
+            _curr_input:None,
             _input_interval : 0.,
             _delta_tick : 0.
         };
@@ -97,5 +100,7 @@ impl ProcedurePlayingParam {
 }
 
 impl ProcedureParam for ProcedurePlayingParam{
-    
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        return self;
+    }
 }

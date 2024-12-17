@@ -1,4 +1,5 @@
-﻿use std::fmt::Debug;
+﻿use std::any::{Any, TypeId};
+use std::fmt::Debug;
 use ggez::{Context, GameResult, graphics};
 use ggez::glam::Vec2;
 use crate::t_state::TState;
@@ -17,7 +18,8 @@ const MAX_ITEM_COUNT:i8 = 2;
 pub struct ProcedureMainUI{
     _selected_item_index : i8,
     _param               : Option<ProcedureMainUIParam>,
-    _title_text_offset   : Vec2
+    _title_text_offset   : Vec2,
+    _start_game_flag     : bool
 }
 
 impl ProcedureMainUI {
@@ -26,7 +28,8 @@ impl ProcedureMainUI {
         return ProcedureMainUI{
             _selected_item_index : 0,
             _param               : None,
-            _title_text_offset   : Vec2::new(-100., 0.)
+            _title_text_offset   : Vec2::new(-100., 0.),
+            _start_game_flag     : false
         };
     }
     
@@ -39,22 +42,20 @@ impl ProcedureMainUI {
             crate::tools::logger::log_info_colored(&self, &format!("menu select new index:{}", new_index), Color::Cyan);
         }
         
-        match new_index{
-            MAX_ITEM_COUNT  =>{
-                self._selected_item_index = 0;
-            },
-            -1 => {
-                self._selected_item_index = MAX_ITEM_COUNT;
-            },
-            _ =>{
-                self._selected_item_index = new_index;
-            }
+        if new_index <= 0 {
+            self._selected_item_index = 0;
+        }
+        else if new_index >= MAX_ITEM_COUNT {
+            self._selected_item_index = 1;
+        }
+        else {
+            self._selected_item_index = new_index;
         }
     }
     
     /// 开始游戏 / start game
-    fn start_game(&self){
-        
+    fn start_game(&mut self){
+        self._start_game_flag = true;
     }
     
     /// 绘制标题文本 / draw title text
@@ -89,15 +90,26 @@ impl Tickable for ProcedureMainUI {
 /// 实现状态机接口 / implement state machine interface
 impl TState for ProcedureMainUI{
     
-    fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
+    fn on_enter(&mut self, mut param:Box<dyn ProcedureParam>){
+        self._start_game_flag = true;
+        //let temp = param.as_any_mut().downcast_mut::<ProcedureMainUIParam>();
+        
         #[cfg(feature = "debug_log")]{
             crate::tools::logger::log_info_colored(&self, &format!("proc main ui ---> on enter..."), Color::Cyan);
         }
     }
     
-    fn on_update(&mut self,ctx:&mut Context,_key_code: KeyCode,delta_sec:f32) {
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
         
-        match _key_code {
+        if(self._start_game_flag){
+            return Some(ProcedureEnum::Playing);
+        }
+        
+        if(key_code.is_none()){
+            return Some(ProcedureEnum::MainUI);
+        }
+        
+        match key_code.unwrap() {
             KeyCode::Return => {
                 self.start_game();
             },
@@ -109,6 +121,7 @@ impl TState for ProcedureMainUI{
             },
             _ => {},
         }
+        return Some(ProcedureEnum::MainUI);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -133,4 +146,9 @@ impl ProcedureMainUIParam {
 }
 
 impl ProcedureParam for ProcedureMainUIParam {
+    //之所以这么麻烦，在每个实现中都要实现一遍相同的代码
+    //是因为处于安全考虑，rust需要知道每个struct的实际类型，这其实相当于将该struct的类型转换为了any
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        return self;
+    }
 }

@@ -1,4 +1,5 @@
-﻿use ggez::{Context, GameResult, graphics};
+﻿use std::any::Any;
+use ggez::{Context, GameResult, graphics};
 use ggez::glam::Vec2;
 use ggez::graphics::{Canvas, DrawMode, Mesh, StrokeOptions, Text, Color, DrawParam};
 use ggez::input::keyboard::KeyCode;
@@ -75,7 +76,8 @@ impl TState for ProcedureTestDrawBlock{
         log_info_colored("ProcedureTestDrawBlock.on_enter()", &"calling".to_string(), colored::Color::Cyan);
     }
 
-    fn on_update(&mut self,ctx:&mut Context, key_code: KeyCode,delta_sec:f32) {
+    fn on_update(&mut self,ctx:&mut Context, key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
+        return Some(ProcedureEnum::TestDrawBlock);
     }
 
     fn on_leave(&mut self, param: Option<Box<dyn ProcedureParam>>) {
@@ -120,4 +122,7 @@ impl ProcedureTestDrawBlockParam {
 }
 
 impl ProcedureParam for ProcedureTestDrawBlockParam {
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        return self;
+    }
 }
