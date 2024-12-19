@@ -14,6 +14,13 @@ pub struct TetriGridCell{
 
 impl TetriGridCell{
     
+    /// 是否被占位 / is occupied
+    /// #Return
+    /// * 返回是否被占位 / return whether it is occupied
+    pub fn is_occupied(&self) -> bool{
+        return self._occupied_flag == 1;
+    }
+    
     /// 清理占位标记 / clear occupied flag
     pub fn clear(&mut self){
         self._occupied_flag = 0;

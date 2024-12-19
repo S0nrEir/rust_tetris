@@ -53,8 +53,23 @@ impl TState for ProcedurePlaying{
         self._input_interval += delta_sec;
         
         //处理输入 / handle input
-        if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL){
-            
+        if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL && !key_code.is_none()){
+            let key_code = key_code.unwrap();
+            match key_code {
+                //速落
+                KeyCode::Down => {
+                },
+                //调整左右位置
+                KeyCode::Left | KeyCode::Right => {;
+                    //旋转成功，更新grid
+                    if(self._play_field.try_rotate_tetrimino(key_code == KeyCode::Right)){
+                        
+                    }
+                    
+                },//end match left right
+                _ => {}
+            }//end match key_code
+            self._input_interval = 0.;
         }
         
         // main tick

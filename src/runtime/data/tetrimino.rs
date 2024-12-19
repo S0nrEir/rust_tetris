@@ -4,7 +4,7 @@ use crate::define::enum_define::TetriminoTypeEnum;
 use crate::tools::logger::{log, LogLevelEnum};
 
 /// 表示一个俄罗斯方块 / A tetrimino
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Tetrimino{
     /// 方块类型 / type
     _tetri_type : TetriminoTypeEnum,
@@ -22,15 +22,53 @@ pub struct Tetrimino{
 
 impl Tetrimino{
     
-    /// 获取方块的实际位置 / get the actual position of the block
+    /// 获取占位方块在grid坐标中的坐标位置 / get the coordinate position of the block in the grid coordinate
     /// #Return
-    /// * 返回方块的实际位置 / return the actual position of the block
-    pub fn block_actual_pos(&mut self) -> &Vec<IVec2>{
+    /// * 返回占位方块在grid坐标中的坐标位置 / return the coordinate position of the block in the grid coordinate
+    pub fn block_actual_coord(&mut self) -> &Vec<IVec2>{
         if(self._pos_change_flag){
             self.update_occupied();
             self._pos_change_flag = false;
         }
         return &self._occupied_actual_pos;
+    }
+    
+    /// 获取向左/向右旋转后的方块坐标组
+    /// #Arguments
+    /// * turn_right - 是否向右旋转 / whether to rotate to the right
+    /// #Return
+    /// * 返回旋转后的方块坐标组 / return the rotated block coordinate group
+    pub fn get_rotated_block(&self,turn_right:bool) -> [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED]{
+        let mut rotated = self._occupied_coord.clone();
+        let len = rotated.len(); 
+        if(len == 0 || rotated[0].len() == 0){
+            log("Tetrimino.rs","get_rotated_block() ---> rotated is empty",LogLevelEnum::Fatal);
+            return [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
+        }
+        
+        for i in 0..len{
+            for j in 0..len{
+                if(turn_right){
+                    rotated[j][len-1-i] = self._occupied_coord[i][j];
+                }
+                else{
+                    rotated[len-1-j][i] = self._occupied_coord[i][j];
+                }
+            }
+        }
+        
+        if(turn_right){
+            return rotated;
+        }
+        else{
+            let mut rotated_left = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
+            for i in 0..BLOCK_MAX_OCCUPIED{
+                for j in 0..BLOCK_MAX_OCCUPIED{
+                    rotated_left[i][j] = rotated[j][BLOCK_MAX_OCCUPIED - 1 - i];
+                }
+            }
+            return rotated_left;
+        }
     }
     
     /// 旋转方块 / rotate the block
@@ -51,11 +89,10 @@ impl Tetrimino{
     /// * offset - 偏移量 / offset
     pub fn update_coord(&mut self,offset:IVec2){
         self._coord = self._coord + offset;
-        // self._pos_change_flag = true;
     }
     
-    ///获取在pos在grid中的实际坐标位置 / get the actual position in the grid
-    pub fn get_pos(&self) -> &IVec2{
+    ///获取在pos在grid中的坐标位置 / get the actual position in the grid
+    pub fn get_coord(&self) -> &IVec2{
         return &self._coord;
     }
 
@@ -72,7 +109,7 @@ impl Tetrimino{
         self._pos_change_flag = false;
     }
     
-    /// 更新占位方块的坐标，下标索引 / 
+    /// 更新占位方块的坐标在grid坐标系统中的下标索引 / 
     fn update_occupied(&mut self){
         self._occupied_index.clear();
         self._occupied_actual_pos.clear();
@@ -163,6 +200,7 @@ impl Tetrimino{
                 panic!();
             }
         }
+        
         for index in index_need_to_spotted.iter(){
             occupied[index.x as usize][index.y as usize] = 1;
             occupied_index.push(index.clone());
