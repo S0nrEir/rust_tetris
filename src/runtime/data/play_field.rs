@@ -25,15 +25,19 @@ impl PlayField {
         return &self._block_arr;
     }
     
+    pub fn try_horizontal_move_tetrimino(&mut self,move_right:bool) -> bool{
+        return true;
+    }
+
     /// 尝试旋转当前方块，如果旋转方块成功且无占位不冲突，则将更新grid area占位情况和对应的tetri / Try to rotate the current block, if the rotation block is successful and there is no conflict with the occupancy, the occupancy situation of the grid area and the corresponding tetri will be updated
     /// #Arguments
     /// * `turn_right` - 是否向右旋转，如果为false则向左旋转 / whether to rotate to the right, if false, rotate to the left
     /// #Return
     /// * 是否旋转成功 / whether the rotation is successful
     pub fn try_rotate_tetrimino(&mut self,turn_right:bool) -> bool{
-        let mut rotate_succ = true;
         match self._curr_terimino { 
             Some(ref mut curr_terimino) => {
+                let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
                 let old_tetrimino = curr_terimino.clone();
                 //turn right
                 if(turn_right){
@@ -44,20 +48,17 @@ impl PlayField {
                     curr_terimino.rotate(false);
                 }
                 
-                let block_actual_coord = curr_terimino.block_actual_coord();
-                for coord in block_actual_coord.iter() {
+                let new_actual_block_coords = curr_terimino.block_actual_coord();
+                for coord in new_actual_block_coords.iter() {
                     //检查curr tetri更新后，占位坐标点在grid坐标系的位置中，是否已经被占用
                     if(self._block_arr[coord.x as usize][coord.y as usize].is_occupied()){
-                        // rotate_succ = false;
-                        // break;
                         *curr_terimino = old_tetrimino;
                         return false;
                     }
                 }//end for
                 
-                for coord in block_actual_coord.iter(){
-                    self._block_arr[coord.x as usize][coord.y as usize].set_occupied(1);
-                }
+                Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr);
+                Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr);
             },
             None => {
                 log("play_field.rs","curr tetrimino is none",LogLevelEnum::Error);
@@ -139,5 +140,19 @@ impl PlayField {
             }
         }
         return block_arr;
+    }
+
+    /// 根据输入的坐标更新方块占位情况 / update block according to input coordinates
+    fn update_block_area(coords_to_update:&Vec<IVec2>, occupied_flag:u8, block_area:&mut [[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
+        for coord in coords_to_update.iter(){
+            let x = coord.x as usize;
+            let y = coord.y as usize;
+            if(x < 0 || x >= constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT || y < 0 || y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT){
+                log("play_field.rs","update_block_area() ---> coord out of range",LogLevelEnum::Error);
+                return false;
+            }
+            block_area[coord.x as usize][coord.y as usize].set_occupied(occupied_flag);
+        }
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 ﻿use ggez::glam::{IVec2, Vec2};
 use ggez::glam::ivec2;
+use crate::tools::logger::{log, LogLevelEnum};
 
 /// 表示游玩区域的单个区块 / Represents a single block in the play area
 #[derive(Debug,Copy, Clone)]
@@ -28,6 +29,10 @@ impl TetriGridCell{
     
     /// 设置该区块的占位情况 / set the occupancy of the block
     pub fn set_occupied(&mut self,occupied_flag:u8){
+        if(occupied_flag != 0 && occupied_flag != 1){
+            log("TetriGridCell.rs","set_occupied() ---> occupied_flag is not 0 or 1",LogLevelEnum::Error);
+            return;
+        }
         self._occupied_flag = occupied_flag;
     }
     

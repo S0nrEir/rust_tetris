@@ -58,15 +58,21 @@ impl TState for ProcedurePlaying{
             match key_code {
                 //速落
                 KeyCode::Down => {
+                    
                 },
-                //调整左右位置
+                //左右移动
                 KeyCode::Left | KeyCode::Right => {;
-                    //旋转成功，更新grid
-                    if(self._play_field.try_rotate_tetrimino(key_code == KeyCode::Right)){
+                    //移动成功，更新grid
+                    if(self._play_field.try_horizontal_move_tetrimino(key_code == KeyCode::Right)){
                         
                     }
-                    
-                },//end match left right
+                },
+                KeyCode::Up => {
+                    //旋转成功，更新grid
+                    if(self._play_field.try_rotate_tetrimino(true)){
+                        
+                    }
+                }
                 _ => {}
             }//end match key_code
             self._input_interval = 0.;
