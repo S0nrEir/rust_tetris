@@ -56,9 +56,11 @@ impl TState for ProcedurePlaying{
         if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL && !key_code.is_none()){
             let key_code = key_code.unwrap();
             match key_code {
-                //速落
+                //下落
                 KeyCode::Down => {
-                    
+                    if(self._play_field.try_fall_tetrimino()){
+                        
+                    }
                 },
                 //左右移动
                 KeyCode::Left | KeyCode::Right => {;

@@ -1,5 +1,6 @@
 ﻿use ggez::glam::{IVec2, ivec2, Vec2};
 use crate::constant;
+use crate::constant::BLOCK_COORD_SPACING;
 use crate::define::enum_define::TetriminoTypeEnum;
 use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::runtime::data::tetrimino::Tetrimino;
@@ -24,21 +25,97 @@ impl PlayField {
         return &self._block_arr;
     }
     
+    /// 尝试下落方块，下落后同步更新grid / Try to drop the block, update the grid synchronously after the drop
+    /// #Return
+    /// * 是否下落成功 / whether the drop is successful
+    pub fn try_fall_tetrimino(&mut self) -> bool{
+        match self._curr_terimino{
+            Some(ref mut curr_tetrimino) => {
+                let mut block_actual_coords = curr_tetrimino.block_actual_coord().clone();
+                //下落检查
+                while true{
+                    
+                    for coords in &block_actual_coords {
+                        let x = coords.x as usize;
+                        let y = coords.y as usize + 1;
+
+                        //到达底检查
+                        if(y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT){
+                            Self::update_block_area(&block_actual_coords, 1, &mut self._block_arr);
+                            log("play_field.rs","try_fall_tetrimino() ---> fall to bottom",LogLevelEnum::Info);
+                            return true;
+                        }
+
+                        //下一格检查
+                        if(self._block_arr[x][y].is_occupied()){
+                            //如果下一格被阻挡，则停留在当前，否则一直循环检查直到底部
+                            Self::update_block_area(&block_actual_coords, 1, &mut self._block_arr);
+                            return true;
+                        }
+                        
+                    }//end for
+                    
+                    //让每个坐标下降一格，然后进行新一轮检查
+                    for coord in block_actual_coords.iter_mut(){
+                        coord.y += 1;
+                    }
+                }//end while
+                return true;
+            }
+            None => {
+                log("play_field.rs","try_fall_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
+                return false;
+            }
+        }//end match
+    }
+    
+    
+    /// 尝试水平移动方块，移动成功则同步更新grid / Try to move the block horizontally, if the move is successful, update the grid synchronously
+    /// #Arguments
+    /// * `move_right` - 是否向右移动，如果为false则向左移动 / whether to move to the right, if false, move to the left
+    /// #Return
+    /// * 是否移动成功 / whether the move is successful
     pub fn try_horizontal_move_tetrimino(&mut self,move_right:bool) -> bool{
         match self._curr_terimino {
             Some(ref mut curr_terimino) => {
+                let block_horizontal_len = self._block_arr[0].len();
                 let horizontal_offset = if move_right {1} else {-1};
                 let tetrimino_actual_coord = curr_terimino.get_coord().clone();
-                let actual_block_coords = curr_terimino.block_actual_coord();
-                let new_tetri_coord_x = tetrimino_actual_coord.x + horizontal_offset + constant::BLOCK_MAX_OCCUPIED as i32;
-                if()
+                
+                //检查左右超越边界
+                if(tetrimino_actual_coord.x + horizontal_offset < 0){
+                    log("play_field.rs","try_horizontal_move_tetrimino() ---> move left out of range",LogLevelEnum::Info);
+                    return false;
+                }
+                if(tetrimino_actual_coord.x + horizontal_offset + constant::BLOCK_MAX_OCCUPIED as i32 >= block_horizontal_len as i32){
+                    log("play_field.rs","try_horizontal_move_tetrimino() ---> move right out of range",LogLevelEnum::Info);
+                    return false;
+                }
+                
+                let old_actual_block_coords = curr_terimino.block_actual_coord();
+                let mut new_actual_block_coords = old_actual_block_coords.clone();
+                let mut temp_idx = 0;
+                //检查左右移动后，是否有占位冲突
+                for coord in old_actual_block_coords{
+                    let x = coord.x + horizontal_offset;
+                    let y = coord.y;
+                    if(self._block_arr[x as usize][y as usize].is_occupied()){
+                        log("play_field.rs",&format!("x:{},y:{} occupied",x,y),LogLevelEnum::Info);
+                        return false;
+                    }
+                    new_actual_block_coords[temp_idx].x = x + horizontal_offset;
+                    temp_idx = temp_idx + 1;
+                }
+                //没有冲突则更新占位情况
+                //Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr);
+                Self::update_block_area(&new_actual_block_coords, 1, &mut self._block_arr);
+                return true;
             },
             None => {
                 log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
                 return false;
             }
         }//end match
-        return true;
     }
 
     /// 尝试旋转当前方块，如果旋转方块成功且无占位不冲突，则将更新grid area占位情况和对应的tetri / Try to rotate the current block, if the rotation block is successful and there is no conflict with the occupancy, the occupancy situation of the grid area and the corresponding tetri will be updated
@@ -69,7 +146,7 @@ impl PlayField {
                     }
                 }//end for
                 
-                Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr);
+                //Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr);
                 Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr);
             },
             None => {
