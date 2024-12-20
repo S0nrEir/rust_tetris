@@ -17,6 +17,15 @@ pub struct PlayField {
 
 //------------------------------instance function------------------------------
 impl PlayField {
+
+    /// 检查是否有最顶层的方块坐标被放置了 / check if the topmost block coordinates are placed
+    /// #Arguments
+    /// * `block_area` - 方块区域 / block area
+    /// #Return
+    /// * 是否有最顶层的方块坐标被放置了，是返回true / whether the topmost block coordinates are placed, return true
+    pub fn is_top_occupied(&self) -> bool{
+        return Self::top_occupied(self._block_arr);
+    }
     
     /// 获取方块区域 / get block area
     /// #Return
@@ -27,44 +36,44 @@ impl PlayField {
     
     /// 尝试下落方块，下落后同步更新grid / Try to drop the block, update the grid synchronously after the drop
     /// #Return
-    /// * 是否下落成功 / whether the drop is successful
-    pub fn try_fall_tetrimino(&mut self) -> bool{
+    /// * item1表示下落是否成功，item2表示是否到达顶部，即不可再生成新的方块 / item1 indicates whether the drop is successful, item2 indicates whether the top is reached, that is, no new blocks can be generated
+    pub fn try_fall_tetrimino(&mut self) -> (bool,bool){
         match self._curr_terimino{
             Some(ref mut curr_tetrimino) => {
                 let mut block_actual_coords = curr_tetrimino.block_actual_coord().clone();
+                let mut is_reach_top = false;
                 //下落检查
                 while true{
                     
+                    //让每个坐标下降一格，然后进行新一轮检查
+                    for coord in block_actual_coords.iter_mut(){
+                        coord.y += 1;
+                    }
                     for coords in &block_actual_coords {
                         let x = coords.x as usize;
                         let y = coords.y as usize + 1;
 
                         //到达底检查
-                        if(y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT){
+                        if(y >= constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT){
                             Self::update_block_area(&block_actual_coords, 1, &mut self._block_arr);
                             log("play_field.rs","try_fall_tetrimino() ---> fall to bottom",LogLevelEnum::Info);
-                            return true;
+                            return (true,false);
                         }
 
                         //下一格检查
                         if(self._block_arr[x][y].is_occupied()){
                             //如果下一格被阻挡，则停留在当前，否则一直循环检查直到底部
                             Self::update_block_area(&block_actual_coords, 1, &mut self._block_arr);
-                            return true;
+                            return return (true,y == constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT);;
                         }
-                        
                     }//end for
                     
-                    //让每个坐标下降一格，然后进行新一轮检查
-                    for coord in block_actual_coords.iter_mut(){
-                        coord.y += 1;
-                    }
                 }//end while
-                return true;
+                return (false,false);
             }
             None => {
                 log("play_field.rs","try_fall_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
-                return false;
+                return (false,false);
             }
         }//end match
     }
@@ -243,5 +252,20 @@ impl PlayField {
             block_area[coord.x as usize][coord.y as usize].set_occupied(occupied_flag);
         }
         return true;
+    }
+    
+    /// 检查是否有最顶层的方块坐标被放置了 / check if the topmost block coordinates are placed
+    /// #Arguments
+    /// * `block_area` - 方块区域 / block area
+    /// #Return
+    /// * 是否有最顶层的方块坐标被放置了，是返回true / whether the topmost block coordinates are placed, return true
+    fn top_occupied(block_area:[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
+        let first_row = block_area[0];
+        for cell in first_row.iter(){
+            if(cell.is_occupied()){
+                return true;
+            }
+        }
+        return false;
     }
 }

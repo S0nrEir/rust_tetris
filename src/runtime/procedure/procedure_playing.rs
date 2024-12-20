@@ -58,9 +58,8 @@ impl TState for ProcedurePlaying{
             match key_code {
                 //下落
                 KeyCode::Down => {
-                    if(self._play_field.try_fall_tetrimino()){
-                        
-                    }
+                    let fall_result = self._play_field.try_fall_tetrimino();
+                    
                 },
                 //左右移动
                 KeyCode::Left | KeyCode::Right => {;
