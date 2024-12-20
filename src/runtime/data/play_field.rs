@@ -1,5 +1,4 @@
-﻿use std::arch::x86_64::_MM_SET_FLUSH_ZERO_MODE;
-use ggez::glam::{IVec2, ivec2, Vec2};
+﻿use ggez::glam::{IVec2, ivec2, Vec2};
 use crate::constant;
 use crate::define::enum_define::TetriminoTypeEnum;
 use crate::runtime::data::teri_grid::TetriGridCell;
@@ -26,6 +25,19 @@ impl PlayField {
     }
     
     pub fn try_horizontal_move_tetrimino(&mut self,move_right:bool) -> bool{
+        match self._curr_terimino {
+            Some(ref mut curr_terimino) => {
+                let horizontal_offset = if move_right {1} else {-1};
+                let tetrimino_actual_coord = curr_terimino.get_coord().clone();
+                let actual_block_coords = curr_terimino.block_actual_coord();
+                let new_tetri_coord_x = tetrimino_actual_coord.x + horizontal_offset + constant::BLOCK_MAX_OCCUPIED as i32;
+                if()
+            },
+            None => {
+                log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
+                return false;
+            }
+        }//end match
         return true;
     }
 
@@ -61,7 +73,7 @@ impl PlayField {
                 Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr);
             },
             None => {
-                log("play_field.rs","curr tetrimino is none",LogLevelEnum::Error);
+                log("play_field.rs","try_rotate_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
                 return false;
             }
         }
