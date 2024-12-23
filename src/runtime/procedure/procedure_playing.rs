@@ -35,7 +35,25 @@ impl Drawable for ProcedurePlaying {
 
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
+        //每次tick向下落一次
+        let fall_succ_and_reached_top = self._play_field.drop_by_one();
+        //顶部存在方块，直接结束游戏
+        if(fall_succ_and_reached_top.1){
+            self.settlement();
+        }
         
+        if(fall_succ_and_reached_top.0){
+            //下落放置成功，重新生成方块，但如果生成失败要检查下是否已经到了顶部
+            if(!self._play_field.generate_new_tetrimino()){
+                if(self._play_field.is_top_occupied()){
+                    self.settlement();
+                }
+                
+            }
+        }
+        //下落没有被放置，继续下落
+        // else{
+        // }
     }
 }
 
@@ -52,39 +70,52 @@ impl TState for ProcedurePlaying{
         self._curr_input = key_code;
         self._input_interval += delta_sec;
         
+        let mut is_reached_top = false;
+        //是否放置了当前方块
+        let mut is_placed = false;
         //处理输入 / handle input
         if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL && !key_code.is_none()){
-            let key_code = key_code.unwrap();
-            match key_code {
-                //下落
-                KeyCode::Down => {
-                    let fall_result = self._play_field.try_fall_tetrimino();
+            if let Some(key_code) = key_code {
+                match key_code {
+                    //下落
+                    KeyCode::Down => {
+                        let fall_succ_and_reached_top = self._play_field.try_drop_to_bottom();
+                        is_reached_top = fall_succ_and_reached_top.1;
+                        if(is_reached_top){
+                            self.settlement();
+                        }    
+                    },
                     
-                },
-                //左右移动
-                KeyCode::Left | KeyCode::Right => {;
-                    //移动成功，更新grid
-                    if(self._play_field.try_horizontal_move_tetrimino(key_code == KeyCode::Right)){
-                        
+                    //左右移动
+                    KeyCode::Left | KeyCode::Right => {;
+                        //移动成功，更新grid
+                        if(self._play_field.try_horizontal_move_tetrimino(key_code == KeyCode::Right)){
+
+                        }
+                    },
+                    
+                    KeyCode::Up => {
+                        //旋转成功，更新grid
+                        if(self._play_field.try_rotate_tetrimino(true)){
+                            
+                        }
                     }
-                },
-                KeyCode::Up => {
-                    //旋转成功，更新grid
-                    if(self._play_field.try_rotate_tetrimino(true)){
-                        
-                    }
-                }
-                _ => {}
-            }//end match key_code
+                    
+                    _ => {}
+                }//end match key_code
+            }
             self._input_interval = 0.;
+            self._curr_input = None;
         }
         
         // main tick
+        //处理方块的自然下落
         self._delta_tick += delta_sec;
         if(self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
             self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
             self._delta_tick = 0.;
         }
+        
         self._curr_input = None;
         return Some(ProcedureEnum::Playing);
     }
@@ -99,7 +130,13 @@ impl TState for ProcedurePlaying{
 }
 
 impl ProcedurePlaying {
-    //--------new--------
+    
+    /// 结算` / stop game
+    fn settlement(&mut self){
+        
+    }
+    
+    
     pub fn new() -> Self{
         return ProcedurePlaying{
             _play_field: PlayField::new(),

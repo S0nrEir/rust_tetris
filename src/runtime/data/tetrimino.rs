@@ -1,6 +1,10 @@
 ﻿use ggez::glam::{IVec2, ivec2, Vec2};
+use rand::Rng;
+use crate::constant;
 use crate::constant::BLOCK_MAX_OCCUPIED;
 use crate::define::enum_define::TetriminoTypeEnum;
+use crate::runtime::data::play_field::PlayField;
+use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::tools::logger::{log, LogLevelEnum};
 
 /// 表示一个俄罗斯方块 / A tetrimino
@@ -21,6 +25,33 @@ pub struct Tetrimino{
 }
 
 impl Tetrimino{
+
+    /// 更改自身的属性，成为一个新的方块 / change its own attributes to become a new block
+    /// #Arguments
+    /// * blocl_area - 游戏区域的方块数据 / block data of the game area
+    /// #Return
+    /// * 返回是否生成成功 / return whether it is generated successfully
+    pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
+        let mut rand = rand::thread_rng();
+        let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
+        let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
+        
+        if let Ok(new_tetri_type) = new_tetri_type {
+            self._tetri_type = new_tetri_type;
+            let index_need_to_spotted = Self::get_spotted_idx(&new_tetri_type);
+            Self::set_occupied(&mut self._occupied_coord, &mut self._occupied_index, index_need_to_spotted);
+            //更新位置
+            let new_pos = rand.gen_range(0..constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT);
+            self._coord = IVec2::new(new_pos as i32,0);
+            self._pos_change_flag = true;
+            let actual_coords = self.block_actual_coord();
+            return !PlayField::detect_tetrimino_collision(&blocl_area,&actual_coords);
+        }
+        else{
+            log("Tetrimino.rs","gen_as_new() ---> new tetri type is none",LogLevelEnum::Fatal);
+            panic!();
+        }
+    }
     
     /// 获取占位方块在grid坐标中的坐标位置 / get the coordinate position of the block in the grid coordinate
     /// #Return
@@ -88,6 +119,7 @@ impl Tetrimino{
     /// #Arguments
     /// * offset - 偏移量 / offset
     pub fn update_coord(&mut self,offset:IVec2){
+        self._pos_change_flag = true;
         self._coord = self._coord + offset;
     }
     
@@ -109,7 +141,7 @@ impl Tetrimino{
         self._pos_change_flag = false;
     }
     
-    /// 更新占位方块的坐标在grid坐标系统中的下标索引 / 
+    /// 更新占位方块的坐标在grid坐标系统中的下标索引 / update the index of the occupied block coordinate in the grid coordinate system
     fn update_occupied(&mut self){
         self._occupied_index.clear();
         self._occupied_actual_pos.clear();
@@ -130,15 +162,18 @@ impl Tetrimino{
     pub fn new(tetri_type : isize) -> Option<Self> {
         let tetri_enum = TetriminoTypeEnum::try_from(tetri_type);
         if let Ok(tetri_type) = tetri_enum {
-            let occupied_and_index = Self::gen_occupied(&tetri_enum.unwrap()); 
-            return Some(Tetrimino{
+            let index_need_to_spotted = Self::get_spotted_idx(&tetri_enum.unwrap());
+            let mut tetrimino = Tetrimino{
                 _tetri_type          : tetri_type,
-                _occupied_coord      : occupied_and_index.0,
-                _occupied_index      : occupied_and_index.1,
+                _occupied_coord      : [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
+                _occupied_index      : Vec::new(),
                 _occupied_actual_pos : Vec::new(),
                 _coord               : IVec2::ZERO,
                 _pos_change_flag     : false,
-            });
+            };
+            
+            Self::set_occupied(&mut tetrimino._occupied_coord, &mut tetrimino._occupied_index, index_need_to_spotted);
+            return Some(tetrimino);
         }
         else{
             log("Tetrimino.rs","new() ---> tetri enum is none",LogLevelEnum::Fatal);
@@ -146,10 +181,29 @@ impl Tetrimino{
         }
     }
     
-    fn gen_occupied(tetri_type : &TetriminoTypeEnum) 
-        -> ([[u8; BLOCK_MAX_OCCUPIED]; BLOCK_MAX_OCCUPIED],Vec<IVec2>){
-        let mut occupied = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-        let mut occupied_index = Vec::new();
+    ///设置占位方块 / set the block
+    pub fn set_occupied(
+        occupied : &mut [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
+        occupied_index:&mut Vec<IVec2>,
+        idx_need_to_spotted:Vec<IVec2>){
+        
+        //reset
+        for i in 0..BLOCK_MAX_OCCUPIED{
+            for j in 0..BLOCK_MAX_OCCUPIED{
+                occupied[i][j] = 0;
+            }
+        }
+        occupied_index.clear();
+        for index in idx_need_to_spotted.iter(){
+            occupied[index.x as usize][index.y as usize] = 1;
+            occupied_index.push(index.clone());
+        }
+    }
+    
+    /// 获取要标记的方块坐标下标集合 / get the set of block coordinate subscripts to be marked
+    fn get_spotted_idx(tetri_type : &TetriminoTypeEnum) -> Vec<IVec2>{
+        // let mut occupied = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
+        // let mut occupied_index = Vec::new();
         let mut index_need_to_spotted = Vec::new();
         match tetri_type {
             TetriminoTypeEnum::Stick => {
@@ -200,11 +254,6 @@ impl Tetrimino{
                 panic!();
             }
         }
-        
-        for index in index_need_to_spotted.iter(){
-            occupied[index.x as usize][index.y as usize] = 1;
-            occupied_index.push(index.clone());
-        }
-        return (occupied,occupied_index);
+        return index_need_to_spotted;
     }
 }
