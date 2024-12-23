@@ -1,6 +1,5 @@
-﻿use ggez::glam::{IVec2, ivec2, Vec2};
+﻿use ggez::glam::{IVec2, Vec2};
 use crate::constant;
-use crate::constant::BLOCK_COORD_SPACING;
 use crate::define::enum_define::TetriminoTypeEnum;
 use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::runtime::data::tetrimino::Tetrimino;
@@ -64,7 +63,7 @@ impl PlayField {
                         if(self._block_arr[x][y].is_occupied()){
                             //如果下一格被阻挡，则停留在当前，否则一直循环检查直到底部
                             Self::update_block_area(&block_actual_coords, 1, &mut self._block_arr);
-                            return return (true,y == constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT);;
+                            return return (true, self.is_top_occupied());
                         }
                     }//end for
                     
@@ -135,7 +134,7 @@ impl PlayField {
     pub fn try_rotate_tetrimino(&mut self,turn_right:bool) -> bool{
         match self._curr_terimino { 
             Some(ref mut curr_terimino) => {
-                let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
+                //let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
                 let old_tetrimino = curr_terimino.clone();
                 //turn right
                 if(turn_right){
