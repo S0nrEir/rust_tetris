@@ -23,7 +23,7 @@ impl PlayField {
         match self._curr_terimino{
             Some(ref mut curr_tetrimino ) => {
                 let gen_succ = curr_tetrimino.gen_as_new(&self._block_arr);
-                if(gen_succ){
+                if gen_succ {
                     Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr);
                 }
                 return gen_succ;
@@ -64,7 +64,7 @@ impl PlayField {
                 curr_tetrimino.update_coord(IVec2::new(0,1));
                 let new_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
                 //检查下落后是否有碰撞
-                if(Self::detect_tetrimino_collision(&self._block_arr, &new_actual_block_coords)){
+                if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_block_coords) {
                     //下一格有碰撞，就停在当前位置
                     Self::update_block_area(&old_actual_block_coords, 1, &mut self._block_arr);
                     return (true,self.is_top_occupied());
@@ -92,12 +92,12 @@ impl PlayField {
                 curr_tetrimino.update_coord(IVec2::new(0,1));
                 let mut drop_succ = false;
                 let new_actual_coords = curr_tetrimino.block_actual_coord().clone();
-                while (!drop_succ) {
+                while !drop_succ {
                     // for coord in new_actual_coords.iter_mut(){
                     //     coord.y += 1;
                     // }
                     
-                    if(Self::detect_tetrimino_collision(&self._block_arr, &new_actual_coords)){
+                    if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_coords) {
                         Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr);
                         drop_succ = true;
                     }
@@ -125,7 +125,7 @@ impl PlayField {
                 let tetri_coords = curr_terimino.get_coord();
                 let offset = if move_right {1} else {-1};
                 let new_x = tetri_coords.x + offset;
-                if(new_x < 0 || new_x as usize >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT){
+                if new_x < 0 || new_x as usize >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT {
                     log("play_field.rs",&format!("try_horizontal_move_tetrimino() ---> move out of range,curr tetrimino x coord : {},y coord : {}",tetri_coords.x,tetri_coords.y),LogLevelEnum::Warning);
                     return false;
                 }
@@ -136,7 +136,7 @@ impl PlayField {
                         let new_actual_coords = curr_tetrimino.block_actual_coord();
                         for coords in new_actual_coords.iter() {
                             //有碰撞则视为失败
-                            if(self._block_arr[coords.x as usize][coords.y as usize].is_occupied()){
+                            if self._block_arr[coords.x as usize][coords.y as usize].is_occupied() {
                                 curr_tetrimino.update_coord(IVec2::new(-offset,0));
                                 return false;
                             }
@@ -200,7 +200,7 @@ impl PlayField {
                 //let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
                 let old_tetrimino = curr_terimino.clone();
                 //turn right
-                if(turn_right){
+                if turn_right {
                     curr_terimino.rotate(true);
                 }
                 //turn left
@@ -211,7 +211,7 @@ impl PlayField {
                 let new_actual_block_coords = curr_terimino.block_actual_coord();
                 for coord in new_actual_block_coords.iter() {
                     //检查curr tetri更新后，占位坐标点在grid坐标系的位置中，是否已经被占用
-                    if(self._block_arr[coord.x as usize][coord.y as usize].is_occupied()){
+                    if self._block_arr[coord.x as usize][coord.y as usize].is_occupied() {
                         *curr_terimino = old_tetrimino;
                         return false;
                     }
@@ -233,7 +233,7 @@ impl PlayField {
     /// #Return
     /// * 返回当前的方块类型 / return the current tetrimino type
     pub fn get_curr_tetrimino_type(&self) -> &TetriminoTypeEnum{
-        if(self._curr_terimino.is_none()){
+        if self._curr_terimino.is_none() {
             return &TetriminoTypeEnum::None;
         }
         return self._curr_terimino.as_ref().unwrap().get_type();
@@ -242,7 +242,7 @@ impl PlayField {
     /// 初始化方块 / Initialize tetrimino
     pub fn init_tetrimino(&mut self){
         self._curr_terimino = tools::tetri_tools::gen_rand_tetrimino();
-        if(self._curr_terimino.is_none()){
+        if self._curr_terimino.is_none() {
             log("play_field.rs","init_tetrimino() ---> curr_tetrimino is none",LogLevelEnum::Fatal);
             panic!();
         }
@@ -257,13 +257,13 @@ impl PlayField {
         //todo：优化，记录所有格子都是空的最高行数，从这里开始检查，避免遍历所有集合
         for line in self._block_arr.iter_mut() {
             for block in line.iter() {
-                if(!block.is_occupied()){
+                if !block.is_occupied() {
                     is_line_full = false;
                     break;
                 }
             }
             
-            if(is_line_full){
+            if is_line_full {
                 for block in line.iter_mut() {
                     block.set_occupied(0);
                 }
@@ -275,17 +275,17 @@ impl PlayField {
         //有消除行，重新计算所有block位置
         //找到位置最深的空行，将上面的行往下移动，倒着，从下网上走
         //todo:优化,现在是从头往下遍历，改成从下往上遍历，找到第一个为空的格就把上面所有的格子都往下移动对应行数，并且记录该列，表示已经移动过，后面的遍历不再处理
-        if(cleared_lines != 0){
+        if cleared_lines != 0 {
             for i in 0..self._block_arr.len(){
                 for j in 0..self._block_arr[i].len() {
                     //如果当前格子为空且上一个格子不为空，则将其上方的所有格子都移下来
-                    if(!self._block_arr[i][j].is_occupied() && 
-                        i < self._block_arr.len()&& 
-                        j < self._block_arr[i].len() - 1 && 
-                        self._block_arr[i][j - 1].is_occupied() )
+                    if !self._block_arr[i][j].is_occupied() && 
+                        i < self._block_arr.len() - 1&& 
+                        j < self._block_arr[i].len() && 
+                        self._block_arr[i - 1][j].is_occupied() 
                     {
                         self._block_arr[i][j].set_occupied(1);
-                        self._block_arr[i][j-1].set_occupied(0);
+                        self._block_arr[i - 1][j].set_occupied(0);
                     }
                 }
             }
@@ -353,7 +353,7 @@ impl PlayField {
         for coord in coords_to_update.iter(){
             let x = coord.x as usize;
             let y = coord.y as usize;
-            if(x < 0 || x >= constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT || y < 0 || y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT){
+            if x < 0 || x >= constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT || y < 0 || y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT {
                 log("play_field.rs","update_block_area() ---> coord out of range",LogLevelEnum::Error);
                 return false;
             }
@@ -385,7 +385,7 @@ impl PlayField {
     /// * 是否冲突 / whether conflict
     pub fn detect_tetrimino_collision(block_area:&[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT],tetri_actual_coords : &Vec<IVec2>) -> bool{
         for coords in tetri_actual_coords{
-            if(block_area[coords.x as usize][coords.y as usize].is_occupied()){
+            if block_area[coords.x as usize][coords.y as usize].is_occupied() {
                 return true;
             }
         }
