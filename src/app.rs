@@ -11,7 +11,7 @@ use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
 use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBlock, ProcedureTestDrawBlockParam};
 use crate::t_state::TState;
 use crate::t_updatable::{Tickable, Updatable};
-use crate::tools::logger::log;
+use crate::tools::logger::{log, LogLevelEnum};
 use crate::tools::logger::LogLevelEnum::Fatal;
 
 /// 游戏的主入口 / Main entry of the game
@@ -120,9 +120,11 @@ impl App {
                 self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
             }
         }
+        else{
+            log("app.rs","main_update() ---> return a none procedure enum!",Fatal);
+            panic!();
+        }
         
-        log("app.rs","main_update() ---> return a none procedure enum!",Fatal);
-        panic!();
         #[cfg(feature = "debug_log")]{
             
         }
