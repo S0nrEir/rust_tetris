@@ -74,10 +74,15 @@ impl Tickable for ProcedureTestDrawBlock {
 impl TState for ProcedureTestDrawBlock{
     fn on_enter(&mut self, param: Box<dyn ProcedureParam>) {
         log_info_colored("ProcedureTestDrawBlock.on_enter()", &"calling".to_string(), colored::Color::Cyan);
+        let mut temp = Vec::new();
+        temp.push(1);
+        temp.push(2);
+        temp.push(3);
     }
 
     fn on_update(&mut self,ctx:&mut Context, key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
         return Some(ProcedureEnum::TestDrawBlock);
+        
     }
 
     fn on_leave(&mut self, param: Option<Box<dyn ProcedureParam>>) {
