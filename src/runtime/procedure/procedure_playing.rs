@@ -1,6 +1,9 @@
 ﻿use std::any::Any;
+use std::sync::Mutex;
 use colored::Color;
-use ggez::{Context, GameResult};
+use ggez::{Context, GameResult, graphics};
+use ggez::glam::Vec2;
+use ggez::graphics::{Canvas, DrawParam, Mesh};
 use ggez::input::keyboard::KeyCode;
 use crate::constant;
 use crate::t_state::TState;
@@ -25,11 +28,15 @@ pub  struct ProcedurePlaying{
     _input_interval : f32,
     // tick轮询时间 / tick polling time
     _delta_tick : f32,
+    /// 停止游戏标记 / stop game flag
+    _stop_flag : bool,
 }
 
 impl Drawable for ProcedurePlaying {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
-        todo!()
+        let mut canvas = self.draw_background(ctx);
+        self.draw_border(ctx, &mut canvas);
+        return Ok(());
     }
 }
 
@@ -48,7 +55,6 @@ impl Tickable for ProcedurePlaying {
                 if(self._play_field.is_top_occupied()){
                     self.settlement();
                 }
-                
             }
         }
         //下落没有被放置，继续下落
@@ -64,15 +70,20 @@ impl TState for ProcedurePlaying{
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
         self._delta_tick = 0.;
+        self._stop_flag = false;
     }
 
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
+        if(self._stop_flag){
+            return Some(ProcedureEnum::Playing);
+        }
+        
         self._curr_input = key_code;
         self._input_interval += delta_sec;
-        
         let mut is_reached_top = false;
         //是否放置了当前方块
         let mut is_placed = false;
+        
         //处理输入 / handle input
         if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL && !key_code.is_none()){
             if let Some(key_code) = key_code {
@@ -81,9 +92,22 @@ impl TState for ProcedurePlaying{
                     KeyCode::Down => {
                         let fall_succ_and_reached_top = self._play_field.try_drop_to_bottom();
                         is_reached_top = fall_succ_and_reached_top.1;
+                        
                         if(is_reached_top){
-                            self.settlement();
-                        }    
+                            //到达顶部且没有任何消除
+                            if(self._play_field.try_clear_line() == 0){
+                                self.settlement();
+                            }
+                            //到达顶部有消除
+                            else{
+                                
+                            }
+                        }
+                        //没有到达顶部
+                        else{
+                            
+                        }
+                        
                     },
                     
                     //左右移动
@@ -104,12 +128,11 @@ impl TState for ProcedurePlaying{
                     _ => {}
                 }//end match key_code
             }
-            self._input_interval = 0.;
+            self._input_interval = 0.0;
             self._curr_input = None;
         }
         
         // main tick
-        //处理方块的自然下落
         self._delta_tick += delta_sec;
         if(self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
             self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
@@ -131,9 +154,22 @@ impl TState for ProcedurePlaying{
 
 impl ProcedurePlaying {
     
-    /// 结算` / stop game
+    /// 绘制背景 / draw background
+    fn draw_background(&mut self,ctx:&mut Context) -> Canvas{
+        return  Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
+    }
+    
+    /// 绘制边框 / draw border
+    fn draw_border(&mut self,ctx:&mut Context,canvas:&mut Canvas){
+        let left_border = Mesh::new_line(ctx, &constant::BORDER_POSITIONS, 2.0, ggez::graphics::Color::WHITE);
+        if let Ok(left_border) = left_border{
+            canvas.draw(&left_border, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
+        }
+    }
+    
+    /// 结算 / stop game
     fn settlement(&mut self){
-        
+        self._stop_flag = true;
     }
     
     
@@ -143,7 +179,8 @@ impl ProcedurePlaying {
             _player_data:PlayingData::new(),
             _curr_input:None,
             _input_interval : 0.,
-            _delta_tick : 0.
+            _delta_tick : 0.,
+            _stop_flag : false,
         };
     }
 }

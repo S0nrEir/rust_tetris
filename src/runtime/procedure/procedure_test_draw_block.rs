@@ -11,6 +11,7 @@ use crate::t_updatable::{Drawable, Tickable};
 use crate::tools::logger::*;
 
 
+
 /// 测试绘制方块流程 / Test draw block process
 #[derive(Debug,Clone)]
 pub struct ProcedureTestDrawBlock{
@@ -99,7 +100,7 @@ impl Drawable for ProcedureTestDrawBlock {
 
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
         //canvas坐标起始从左上角开始
-        self.draw_text(&mut canvas);
+        // self.draw_text(&mut canvas);
         
         if(self._tick_counter < 10){
             self.draw_block(&mut canvas, ctx);
@@ -107,8 +108,6 @@ impl Drawable for ProcedureTestDrawBlock {
         else{
             self.draw_another_block(&mut canvas, ctx);
         }
-        
-        canvas.finish(ctx)?; 
         return Ok(());
     }
 }

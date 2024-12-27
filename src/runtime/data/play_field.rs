@@ -1,4 +1,5 @@
-﻿use ggez::glam::{IVec2, Vec2};
+﻿use std::cell;
+use ggez::glam::{IVec2, Vec2};
 use crate::constant;
 use crate::define::enum_define::TetriminoTypeEnum;
 use crate::runtime::data::teri_grid::TetriGridCell;
@@ -245,6 +246,52 @@ impl PlayField {
             log("play_field.rs","init_tetrimino() ---> curr_tetrimino is none",LogLevelEnum::Fatal);
             panic!();
         }
+    }
+    
+    /// 尝试消除一行，如果消除成功则更新对应的block grid / Try to clear a line, if the elimination is successful, update the corresponding block grid
+    /// #Return
+    /// * 消除的行数 / number of lines eliminated
+    pub fn try_clear_line(&mut self) -> u8{
+        let mut cleared_lines : u8 = 0;
+        let mut is_line_full = true;
+        //todo：优化，记录所有格子都是空的最高行数，从这里开始检查，避免遍历所有集合
+        for line in self._block_arr.iter_mut() {
+            for block in line.iter() {
+                if(!block.is_occupied()){
+                    is_line_full = false;
+                    break;
+                }
+            }
+            
+            if(is_line_full){
+                for block in line.iter_mut() {
+                    block.set_occupied(0);
+                }
+                cleared_lines += 1;
+            }
+            is_line_full = true;
+        }
+        
+        //有消除行，重新计算所有block位置
+        //找到位置最深的空行，将上面的行往下移动，倒着，从下网上走
+        //todo:优化,现在是从头往下遍历，改成从下往上遍历，找到第一个为空的格就把上面所有的格子都往下移动对应行数，并且记录该列，表示已经移动过，后面的遍历不再处理
+        if(cleared_lines != 0){
+            for i in 0..self._block_arr.len(){
+                for j in 0..self._block_arr[i].len() {
+                    //如果当前格子为空且上一个格子不为空，则将其上方的所有格子都移下来
+                    if(!self._block_arr[i][j].is_occupied() && 
+                        i < self._block_arr.len()&& 
+                        j < self._block_arr[i].len() - 1 && 
+                        self._block_arr[i][j - 1].is_occupied() )
+                    {
+                        self._block_arr[i][j].set_occupied(1);
+                        self._block_arr[i][j-1].set_occupied(0);
+                    }
+                }
+            }
+        }
+        
+        return cleared_lines;
     }
     
     /// 初始化区块数据，包含坐标和实际的位置 / Initialize block data, including coordinates and actual positions

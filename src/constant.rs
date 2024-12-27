@@ -1,4 +1,6 @@
-﻿//------------------------------font------------------------------
+﻿use ggez::glam::Vec2;
+
+//------------------------------font------------------------------
 ///字体名称
 pub const FONT_NAME: &str = "consola";
 ///字体资产路径
@@ -54,3 +56,11 @@ pub const BLOCK_INIT_START_COORD: (f32, f32) = (100.0, 100.0);
 pub const BLOCK_MAX_OCCUPIED : usize = 4;
 /// 可处理输入的时间间隔 / Time interval for processing input
 pub  const INPUT_HANDLE_INTERVAL : f32 = 0.5;
+
+pub const BORDER_POSITIONS : [Vec2;5] = [
+    Vec2::new(150.0,50.0),
+    Vec2::new(600.0,50.0),
+    Vec2::new(600.0,750.0),
+    Vec2::new(150.0,750.0),
+    Vec2::new(150.0,50.0)
+];
