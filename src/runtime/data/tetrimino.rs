@@ -41,11 +41,14 @@ impl Tetrimino{
             let index_need_to_spotted = Self::get_spotted_idx(&new_tetri_type);
             Self::set_occupied(&mut self._occupied_coord, &mut self._occupied_index, index_need_to_spotted);
             //更新位置
-            let new_pos = rand.gen_range(0..constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT);
+            // let new_pos = rand.gen_range(0..constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT);
+            //暂时放到中间
+            let new_pos = constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT / 2;
             self._coord = IVec2::new(new_pos as i32,0);
             self._pos_change_flag = true;
             let actual_coords = self.block_actual_coord();
-            return !PlayField::detect_tetrimino_collision(&blocl_area,&actual_coords);
+            let detected_collision = !PlayField::detect_tetrimino_collision(&blocl_area,&actual_coords);
+            return !detected_collision;
         }
         else{
             log("Tetrimino.rs","gen_as_new() ---> new tetri type is none",LogLevelEnum::Fatal);
@@ -57,7 +60,7 @@ impl Tetrimino{
     /// #Return
     /// * 返回占位方块在grid坐标中的坐标位置 / return the coordinate position of the block in the grid coordinate
     pub fn block_actual_coord(&mut self) -> &Vec<IVec2>{
-        if(self._pos_change_flag){
+        if self._pos_change_flag {
             self.update_occupied();
             self._pos_change_flag = false;
         }
@@ -69,44 +72,44 @@ impl Tetrimino{
     /// * turn_right - 是否向右旋转 / whether to rotate to the right
     /// #Return
     /// * 返回旋转后的方块坐标组 / return the rotated block coordinate group
-    pub fn get_rotated_block(&self,turn_right:bool) -> [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED]{
-        let mut rotated = self._occupied_coord.clone();
-        let len = rotated.len(); 
-        if(len == 0 || rotated[0].len() == 0){
-            log("Tetrimino.rs","get_rotated_block() ---> rotated is empty",LogLevelEnum::Fatal);
-            return [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-        }
-        
-        for i in 0..len{
-            for j in 0..len{
-                if(turn_right){
-                    rotated[j][len-1-i] = self._occupied_coord[i][j];
-                }
-                else{
-                    rotated[len-1-j][i] = self._occupied_coord[i][j];
-                }
-            }
-        }
-        
-        if(turn_right){
-            return rotated;
-        }
-        else{
-            let mut rotated_left = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-            for i in 0..BLOCK_MAX_OCCUPIED{
-                for j in 0..BLOCK_MAX_OCCUPIED{
-                    rotated_left[i][j] = rotated[j][BLOCK_MAX_OCCUPIED - 1 - i];
-                }
-            }
-            return rotated_left;
-        }
-    }
+    // pub fn get_rotated_block(&self,turn_right:bool) -> [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED]{
+    //     let mut rotated = self._occupied_coord.clone();
+    //     let len = rotated.len(); 
+    //     if len == 0 || rotated[0].len() == 0 {
+    //         log("Tetrimino.rs","get_rotated_block() ---> rotated is empty",LogLevelEnum::Fatal);
+    //         return [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
+    //     }
+    //     
+    //     for i in 0..len{
+    //         for j in 0..len{
+    //             if turn_right {
+    //                 rotated[j][len-1-i] = self._occupied_coord[i][j];
+    //             }
+    //             else{
+    //                 rotated[len-1-j][i] = self._occupied_coord[i][j];
+    //             }
+    //         }
+    //     }
+    //     
+    //     if turn_right {
+    //         return rotated;
+    //     }
+    //     else{
+    //         let mut rotated_left = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
+    //         for i in 0..BLOCK_MAX_OCCUPIED{
+    //             for j in 0..BLOCK_MAX_OCCUPIED{
+    //                 rotated_left[i][j] = rotated[j][BLOCK_MAX_OCCUPIED - 1 - i];
+    //             }
+    //         }
+    //         return rotated_left;
+    //     }
+    // }
     
     /// 旋转方块 / rotate the block
     /// #Arguments
     /// * turn_right - 是否向右旋转，如果为false则向左旋转 / whether to rotate to the right, if false, rotate to the left
     pub fn rotate(&mut self,turn_right:bool){
-        if(turn_right){
+        if turn_right {
             self._occupied_coord.rotate_right(1);
         }
         else{

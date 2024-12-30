@@ -1,8 +1,7 @@
 ﻿use std::any::Any;
-use std::sync::Mutex;
 use colored::Color;
 use ggez::{Context, GameResult, graphics};
-use ggez::glam::Vec2;
+use ggez::glam::{IVec2, Vec2};
 use ggez::graphics::{Canvas, DrawParam, Mesh};
 use ggez::input::keyboard::KeyCode;
 use crate::constant;
@@ -13,6 +12,7 @@ use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::{Drawable, Tickable};
 use crate::runtime::data::playing_data::PlayingData;
 use crate::tools::logger::*;
+use crate::runtime::procedure::playing_state_enum::PlayingStateEnum;
 
 ///游玩状态
 /// playing state
@@ -28,8 +28,12 @@ pub  struct ProcedurePlaying{
     _input_interval : f32,
     // tick轮询时间 / tick polling time
     _delta_tick : f32,
-    /// 停止游戏标记 / stop game flag
-    _stop_flag : bool,
+    
+    //------------游玩逻辑相关------------
+    /// 当前的游玩状态
+    _curr_playing_state : PlayingStateEnum,
+    //表现要删除的游玩区域方块坐标集合
+    _performing_coords : Vec<IVec2>,
 }
 
 impl Drawable for ProcedurePlaying {
@@ -43,23 +47,29 @@ impl Drawable for ProcedurePlaying {
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
         //每次tick向下落一次
-        let fall_succ_and_reached_top = self._play_field.drop_by_one();
+        let fall_succ_and_reached_top = self._play_field.drop_once();
         //顶部存在方块，直接结束游戏
-        if(fall_succ_and_reached_top.1){
+        if fall_succ_and_reached_top.1 {
             self.settlement();
+            return;
         }
         
-        if(fall_succ_and_reached_top.0){
-            //下落放置成功，重新生成方块，但如果生成失败要检查下是否已经到了顶部
-            if(!self._play_field.generate_new_tetrimino()){
-                if(self._play_field.is_top_occupied()){
+        if fall_succ_and_reached_top.0 {
+            //下落成功检查消除
+            let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+            //没有消除，重新生成
+            if cleared_line_cnt_and_coords.0 == 0 {
+                //下落放置成功，重新生成方块，但如果生成失败要检查下是否已经到了顶部
+                if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
                     self.settlement();
                 }
             }
+            //有消除
+            else{
+                self._performing_coords = cleared_line_cnt_and_coords.1;
+                self._curr_playing_state = PlayingStateEnum::Performing;
+            }
         }
-        //下落没有被放置，继续下落
-        // else{
-        // }
     }
 }
 
@@ -70,77 +80,106 @@ impl TState for ProcedurePlaying{
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
         self._delta_tick = 0.;
-        self._stop_flag = false;
+        self._curr_playing_state = PlayingStateEnum::Falling;
+        self._performing_coords.clear();
     }
 
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
-        if(self._stop_flag){
-            return Some(ProcedureEnum::Playing);
-        }
-        
         self._curr_input = key_code;
         self._input_interval += delta_sec;
-        let mut is_reached_top = false;
-        //是否放置了当前方块
-        let mut is_placed = false;
+        let mut procedure_to_return : Option<ProcedureEnum> = None;
         
-        //处理输入 / handle input
-        if(self._input_interval >= constant::INPUT_HANDLE_INTERVAL && !key_code.is_none()){
-            if let Some(key_code) = key_code {
-                match key_code {
+        match self._curr_playing_state { 
+            PlayingStateEnum::Falling => {
+                //处理输入 / handle input
+                if self._input_interval < constant::INPUT_HANDLE_INTERVAL || key_code.is_none() {
+                    return Some(ProcedureEnum::Playing);
+                }
+
+                let actual_key_code = key_code.unwrap();
+                match actual_key_code{
                     //下落
                     KeyCode::Down => {
                         let fall_succ_and_reached_top = self._play_field.try_drop_to_bottom();
-                        is_reached_top = fall_succ_and_reached_top.1;
-                        
-                        if(is_reached_top){
-                            //到达顶部且没有任何消除
-                            if(self._play_field.try_clear_line() == 0){
+                        //到达顶部
+                        if fall_succ_and_reached_top.1 {
+                            let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+                            //到达顶部且没有消除方块，则结算
+                            if cleared_line_cnt_and_coords.0 == 0 {
                                 self.settlement();
                             }
-                            //到达顶部有消除
+                            //到达顶部有消除，进行表现效果
                             else{
-                                
+                                self._performing_coords = cleared_line_cnt_and_coords.1;
+                                self._curr_playing_state = PlayingStateEnum::Performing;
                             }
                         }
-                        //没有到达顶部
+                        //未到达顶部
                         else{
-                            
+                            let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+                            //未到达顶部，没有消除，重新生成
+                            if  cleared_line_cnt_and_coords.0 == 0 {
+                                if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
+                                    self.settlement();
+                                }
+                                else{
+                                    procedure_to_return = Some(ProcedureEnum::Playing);
+                                }
+                            }
+                            //未到达顶部，有消除
+                            else{
+                                self._performing_coords = cleared_line_cnt_and_coords.1;
+                                self._curr_playing_state = PlayingStateEnum::Performing;
+                            }
                         }
-                        
-                    },
-                    
-                    //左右移动
-                    KeyCode::Left | KeyCode::Right => {;
-                        //移动成功，更新grid
-                        if(self._play_field.try_horizontal_move_tetrimino(key_code == KeyCode::Right)){
 
-                        }
+                    },//end match down
+                    //左右移动
+                    KeyCode::Left | KeyCode::Right => {
+                        //移动成功，更新grid
+                        self._play_field.try_horizontal_move_tetrimino(actual_key_code == KeyCode::Right);
                     },
-                    
+
                     KeyCode::Up => {
                         //旋转成功，更新grid
-                        if(self._play_field.try_rotate_tetrimino(true)){
-                            
-                        }
+                        self._play_field.try_rotate_tetrimino(true);
                     }
-                    
                     _ => {}
-                }//end match key_code
+                }
+                self._input_interval = 0.0;
+                self._curr_input = None;
+            },//end match falling
+            
+            //处理表现
+            PlayingStateEnum::Performing => {
+                
+                procedure_to_return = Some(ProcedureEnum::Playing);
+                self._performing_coords.clear();
+            },
+            
+            //结算
+            PlayingStateEnum::Settlement =>{
+                //没有输入就不做处理
+                if key_code.is_none(){
+                    procedure_to_return = Some(ProcedureEnum::Playing);
+                }
+                //有任何输入，就进入结束游戏流程
+                else{
+                    procedure_to_return = Some(ProcedureEnum::Over);
+                }
             }
-            self._input_interval = 0.0;
-            self._curr_input = None;
-        }
+            _ => {}
+        }//end match
         
         // main tick
         self._delta_tick += delta_sec;
-        if(self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC){
+        if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC {
             self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
             self._delta_tick = 0.;
         }
         
         self._curr_input = None;
-        return Some(ProcedureEnum::Playing);
+        return procedure_to_return;
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -169,7 +208,7 @@ impl ProcedurePlaying {
     
     /// 结算 / stop game
     fn settlement(&mut self){
-        self._stop_flag = true;
+        self._curr_playing_state = PlayingStateEnum::Settlement;
     }
     
     
@@ -180,7 +219,8 @@ impl ProcedurePlaying {
             _curr_input:None,
             _input_interval : 0.,
             _delta_tick : 0.,
-            _stop_flag : false,
+            _curr_playing_state : PlayingStateEnum::Start,
+            _performing_coords : Vec::new(),
         };
     }
 }

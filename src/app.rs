@@ -1,4 +1,4 @@
-﻿use std::{env, fmt, mem, path};
+﻿use std::{env, fmt, path};
 use std::path::{Path, PathBuf};
 use ggez::{Context, event, GameResult, graphics::{self}};
 use ggez::conf::WindowMode;
@@ -10,7 +10,7 @@ use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_pla
 use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
 use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBlock, ProcedureTestDrawBlockParam};
 use crate::t_state::TState;
-use crate::t_updatable::{Tickable, Updatable};
+use crate::t_updatable::{Updatable};
 use crate::tools::logger::{log, LogLevelEnum};
 use crate::tools::logger::LogLevelEnum::Fatal;
 
@@ -113,10 +113,10 @@ impl App {
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
         let old_procedure = self._procedure_component.curr_procedure();
         let new_procedure = self._procedure_component.on_update(ctx,key_code,delta_time as f32);
-        if(!old_procedure.is_none() && !new_procedure.is_none()){
+        if !old_procedure.is_none() && !new_procedure.is_none() {
             let old_procedure = old_procedure.unwrap();
             let new_procedure = new_procedure.unwrap();
-            if(old_procedure != new_procedure){
+            if old_procedure != new_procedure {
                 self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
             }
         }

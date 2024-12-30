@@ -1,5 +1,4 @@
-﻿use std::cell;
-use ggez::glam::{IVec2, Vec2};
+﻿use ggez::glam::{IVec2, Vec2};
 use crate::constant;
 use crate::define::enum_define::TetriminoTypeEnum;
 use crate::runtime::data::teri_grid::TetriGridCell;
@@ -19,6 +18,8 @@ pub struct PlayField {
 impl PlayField {
     
     /// 生成新方块，代替当前的方块
+    /// #Return
+    /// * 是否生成成功，如果生成成功则更新grid area占位情况，失败则表示空间不足 / Whether the generation is successful, if the generation is successful, the occupancy situation of the grid area will be updated, and failure indicates insufficient space
     pub fn generate_new_tetrimino(&mut self) -> bool{
         match self._curr_terimino{
             Some(ref mut curr_tetrimino ) => {
@@ -54,7 +55,7 @@ impl PlayField {
     /// 将当前方块下降一格 / Drop the current block by one grid
     /// #Return
     /// * 返回值1表示是否下降成功，返回值2表示是否到达顶部 / Return value 1 indicates whether the drop is successful, and return value 2 indicates whether the top is reached
-    pub fn drop_by_one(&mut self) -> (bool,bool){
+    pub fn drop_once(&mut self) -> (bool,bool){
         match self._curr_terimino { 
             Some(ref mut curr_tetrimino) => {
                 // for coord in new_actual_block_coords.iter_mut(){
@@ -142,7 +143,7 @@ impl PlayField {
                             }
                         }
                         Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr);
-                        Self::update_block_area(&old_actual_coords, 1, &mut self._block_arr);
+                        Self::update_block_area(&new_actual_coords, 1, &mut self._block_arr);
                         return true;
                     },
                     None => {
@@ -250,10 +251,12 @@ impl PlayField {
     
     /// 尝试消除一行，如果消除成功则更新对应的block grid / Try to clear a line, if the elimination is successful, update the corresponding block grid
     /// #Return
-    /// * 消除的行数 / number of lines eliminated
-    pub fn try_clear_line(&mut self) -> u8{
+    /// * 返回消除的行数和对应的游玩区域坐标 / return the number of lines cleared and the corresponding coordinates
+    pub fn try_clear_line(&mut self) -> (u8,Vec<IVec2>){
         let mut cleared_lines : u8 = 0;
         let mut is_line_full = true;
+        let mut cleared_coords : Vec<IVec2> = Vec::new();
+        let mut x = 0;
         //todo：优化，记录所有格子都是空的最高行数，从这里开始检查，避免遍历所有集合
         for line in self._block_arr.iter_mut() {
             for block in line.iter() {
@@ -264,12 +267,16 @@ impl PlayField {
             }
             
             if is_line_full {
+                let mut y = 0;
                 for block in line.iter_mut() {
                     block.set_occupied(0);
+                    cleared_coords.push(IVec2::new(x,y));
+                    y += 1;
                 }
                 cleared_lines += 1;
             }
             is_line_full = true;
+            x += 1;
         }
         
         //有消除行，重新计算所有block位置
@@ -291,7 +298,7 @@ impl PlayField {
             }
         }
         
-        return cleared_lines;
+        return (cleared_lines,cleared_coords);
     }
     
     /// 初始化区块数据，包含坐标和实际的位置 / Initialize block data, including coordinates and actual positions
@@ -303,6 +310,7 @@ impl PlayField {
             for block in element.iter_mut() {
                 block.set_world_position(Vec2::new(init_coord.0, init_coord.1));
                 block.set_coord(x as i32, y as i32);
+                block.set_occupied(0);
                 y += 1.;
                 //y offset
                 init_coord.1 = (x + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING) as f32;
@@ -343,6 +351,7 @@ impl PlayField {
         for i in 0..constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT {
             for j in 0..constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT {
                 block_arr[i][j] = TetriGridCell::new(Vec2::new(0.0,0.0),IVec2::new(i as i32,j as i32));
+                block_arr[i][j].set_occupied(0);
             }
         }
         return block_arr;
@@ -370,7 +379,7 @@ impl PlayField {
     fn top_occupied(block_area:&[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
         let first_row = block_area[0];
         for cell in first_row.iter(){
-            if(cell.is_occupied()){
+            if cell.is_occupied() {
                 return true;
             }
         }

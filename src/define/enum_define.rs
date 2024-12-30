@@ -73,6 +73,6 @@ impl TetriminoTypeEnum {
     
     /// 获取枚举的最小/最大范围值 / Get the minimum/maximum range value of the enumeration
     pub fn get_min_max_range() -> Range<isize>{
-        return (START_INDEX..END_INDEX);
+        return START_INDEX..END_INDEX;
     }
 }

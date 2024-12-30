@@ -4,12 +4,12 @@ pub mod procedure_over;
 pub mod t_procedure_param;
 pub mod procedure_test_draw_block;
 mod procedure_test_draw_text;
+mod playing_state_enum;
 
 use std::collections::HashMap;
 use std::mem;
 use ggez::{Context, GameResult};
 use ggez::input::keyboard::KeyCode;
-use ggez::winit::event::VirtualKeyCode;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::procedure_test_draw_block::ProcedureTestDrawBlock;
 use crate::runtime::procedure::procedure_test_draw_text::ProcedureTestDrawText;
@@ -74,12 +74,12 @@ impl ProcedureComponent {
     
     /// 添加一个已存在的流程 / add an existing procedure
     fn add_exist_procedure(&mut self,procedure:Option<Box<dyn TState>>) -> Result<(),String>{
-        if(procedure.is_none()){
+        if procedure.is_none() {
             return Err(String::from("procedure is none"));
         }
         
         let enum_type = procedure.as_ref().unwrap().get_state().into();
-        if(self._procedure_map.contains_key(&enum_type)){
+        if self._procedure_map.contains_key(&enum_type) {
             let err_msg = String::from(format!("procedure already exists, procedure:{}",enum_type));
             return Err(err_msg);
         }
@@ -95,7 +95,7 @@ impl ProcedureComponent {
     /// * `bool` - 是否添加成功 / whether add successfully
     pub fn add_new_procedure(&mut self,procedure_enum:ProcedureEnum) -> bool{
         let enum_type:i32 = procedure_enum.into();
-        if(self._procedure_map.contains_key(&enum_type)){
+        if self._procedure_map.contains_key(&enum_type) {
             log(self,"procedure already exists",LogLevelEnum::Info);
             return false;
         }
@@ -166,7 +166,7 @@ impl ProcedureComponent {
     /// #Return
     /// * `Option<ProcedureEnuxm>` - 当前流程 / current procedure
     pub fn curr_procedure(&self) -> Option<ProcedureEnum>{
-        if(self._current_procedure.is_none()){
+        if self._current_procedure.is_none() {
             return None;
         }
         return Some(self._current_procedure.as_ref().unwrap().get_state().into());
