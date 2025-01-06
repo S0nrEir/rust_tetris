@@ -1,6 +1,7 @@
 ﻿use ggez::glam::{IVec2, Vec2};
+use ggez::graphics::Color;
 use crate::constant;
-use crate::define::enum_define::TetriminoTypeEnum;
+use crate::define::enum_define::{PlayFieldColorEnum, TetriminoColorEnum, TetriminoTypeEnum};
 use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::runtime::data::tetrimino::Tetrimino;
 use crate::tools;
@@ -17,6 +18,11 @@ pub struct PlayField {
 //------------------------------instance function------------------------------
 impl PlayField {
     
+    /// 获取方块区域 / get block area
+    pub fn get_block_area(&self) -> &[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]{
+        return &self._block_arr;
+    }
+    
     /// 生成新方块，代替当前的方块
     /// #Return
     /// * 是否生成成功，如果生成成功则更新grid area占位情况，失败则表示空间不足 / Whether the generation is successful, if the generation is successful, the occupancy situation of the grid area will be updated, and failure indicates insufficient space
@@ -24,8 +30,9 @@ impl PlayField {
         match self._curr_terimino{
             Some(ref mut curr_tetrimino ) => {
                 let gen_succ = curr_tetrimino.gen_as_new(&self._block_arr);
+                let tetri_color=  curr_tetrimino.color();
                 if gen_succ {
-                    Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr);
+                    Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                 }
                 return gen_succ;
             }
@@ -61,19 +68,20 @@ impl PlayField {
                 // for coord in new_actual_block_coords.iter_mut(){
                 //     coord.y += 1;
                 // }
+                let tetri_color = curr_tetrimino.color();
                 let old_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
                 curr_tetrimino.update_coord(IVec2::new(0,1));
                 let new_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
                 //检查下落后是否有碰撞
                 if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_block_coords) {
                     //下一格有碰撞，就停在当前位置
-                    Self::update_block_area(&old_actual_block_coords, 1, &mut self._block_arr);
+                    Self::update_block_area(&old_actual_block_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                     return (true,self.is_top_occupied());
                 }
                 else{
                     //下一格无碰撞，当前位置标记位无占位，下一格位置标记位有占位
-                    Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr);
-                    Self::update_block_area(&new_actual_block_coords, 1, &mut self._block_arr);
+                    Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+                    Self::update_block_area(&new_actual_block_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                     return (false,true);
                 }
             }
@@ -89,6 +97,7 @@ impl PlayField {
     pub fn try_drop_to_bottom(&mut self) -> (bool,bool){
         match self._curr_terimino{
             Some(ref mut curr_tetrimino) => {
+                let tetri_color = curr_tetrimino.color();
                 let old_actual_coords = curr_tetrimino.block_actual_coord().clone();
                 curr_tetrimino.update_coord(IVec2::new(0,1));
                 let mut drop_succ = false;
@@ -99,12 +108,12 @@ impl PlayField {
                     // }
                     
                     if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_coords) {
-                        Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr);
+                        Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                         drop_succ = true;
                     }
                     curr_tetrimino.update_coord(IVec2::new(0,1));
                 }//end while
-                Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr);
+                Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
                 return (true,self.is_top_occupied());
             }
             None => {
@@ -132,6 +141,7 @@ impl PlayField {
                 }
                 match self._curr_terimino { 
                     Some(ref mut curr_tetrimino) => {
+                        let tetri_color = curr_tetrimino.color();
                         let old_actual_coords = curr_tetrimino.block_actual_coord().clone();
                         curr_tetrimino.update_coord(IVec2::new(offset,0));
                         let new_actual_coords = curr_tetrimino.block_actual_coord();
@@ -142,8 +152,8 @@ impl PlayField {
                                 return false;
                             }
                         }
-                        Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr);
-                        Self::update_block_area(&new_actual_coords, 1, &mut self._block_arr);
+                        Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+                        Self::update_block_area(&new_actual_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                         return true;
                     },
                     None => {
@@ -196,10 +206,11 @@ impl PlayField {
     /// #Return
     /// * 是否旋转成功 / whether the rotation is successful
     pub fn try_rotate_tetrimino(&mut self,turn_right:bool) -> bool{
-        match self._curr_terimino { 
+        match self._curr_terimino {
             Some(ref mut curr_terimino) => {
                 //let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
                 let old_tetrimino = curr_terimino.clone();
+                let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
                 //turn right
                 if turn_right {
                     curr_terimino.rotate(true);
@@ -218,8 +229,8 @@ impl PlayField {
                     }
                 }//end for
                 
-                //Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr);
-                Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr);
+                Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+                Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(old_tetrimino.color()));
             },
             None => {
                 log("play_field.rs","try_rotate_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
@@ -358,15 +369,44 @@ impl PlayField {
     }
 
     /// 根据输入的坐标更新方块占位情况 / update block according to input coordinates
-    fn update_block_area(coords_to_update:&Vec<IVec2>, occupied_flag:u8, block_area:&mut [[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
+    fn update_block_area(coords_to_update:&Vec<IVec2>, occupied_flag:u8, block_area:&mut [[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT],color_to_set: PlayFieldColorEnum) -> bool{
+        
         for coord in coords_to_update.iter(){
             let x = coord.x as usize;
             let y = coord.y as usize;
+            let mut curr_cell = block_area[coord.x as usize][coord.y as usize]; 
             if x < 0 || x >= constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT || y < 0 || y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT {
                 log("play_field.rs","update_block_area() ---> coord out of range",LogLevelEnum::Error);
                 return false;
             }
-            block_area[coord.x as usize][coord.y as usize].set_occupied(occupied_flag);
+            curr_cell.set_occupied(occupied_flag);
+            match color_to_set {
+                PlayFieldColorEnum::BlockColor(block_color) => {
+                    match block_color {
+                        TetriminoColorEnum::Cyan => {
+                            curr_cell.set_color(Color::CYAN);
+                        },
+                        TetriminoColorEnum::Yellow => {
+                            curr_cell.set_color(Color::YELLOW);
+                        },
+                        TetriminoColorEnum::Red => {
+                            curr_cell.set_color(Color::RED);
+                        },
+                        TetriminoColorEnum::Green => {
+                            curr_cell.set_color(Color::GREEN);
+                        },
+                        TetriminoColorEnum::Blue => {
+                            curr_cell.set_color(Color::BLUE);
+                        },
+                        TetriminoColorEnum::Purple => {
+                            curr_cell.set_color(Color::new(0.5,0.0,0.5,1.0));
+                        }
+                    }
+                },
+                PlayFieldColorEnum::Black => {
+                    curr_cell.set_color(Color::BLACK);
+                }
+            }
         }
         return true;
     }

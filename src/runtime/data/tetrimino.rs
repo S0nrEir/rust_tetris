@@ -2,7 +2,7 @@
 use rand::Rng;
 use crate::constant;
 use crate::constant::BLOCK_MAX_OCCUPIED;
-use crate::define::enum_define::TetriminoTypeEnum;
+use crate::define::enum_define::{TetriminoColorEnum, TetriminoTypeEnum};
 use crate::runtime::data::play_field::PlayField;
 use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::tools::logger::{log, LogLevelEnum};
@@ -22,6 +22,8 @@ pub struct Tetrimino{
     _coord : IVec2,
     /// 是否需要更新位置 / whether to update the position
     _pos_change_flag : bool,
+    /// 方块颜色下标 / block color
+    _color : usize,
 }
 
 impl Tetrimino{
@@ -48,6 +50,10 @@ impl Tetrimino{
             self._pos_change_flag = true;
             let actual_coords = self.block_actual_coord();
             let detected_collision = !PlayField::detect_tetrimino_collision(&blocl_area,&actual_coords);
+            
+            self._color += 1;
+            self._color = self._color % constant::BLOCK_COLOR_GEN_SEQUENCE.len();
+            
             return !detected_collision;
         }
         else{
@@ -126,16 +132,25 @@ impl Tetrimino{
         self._coord = self._coord + offset;
     }
     
+    /// 获取方块颜色 / get the block color
+    #[inline]
+    pub fn color(&self) -> TetriminoColorEnum{
+        return constant::BLOCK_COLOR_GEN_SEQUENCE[self._color].clone();
+    }
+    
     ///获取在pos在grid中的坐标位置 / get the actual position in the grid
+    #[inline]
     pub fn get_coord(&self) -> &IVec2{
         return &self._coord;
     }
-
+    
+    #[inline]
     pub fn get_type(&self) -> &TetriminoTypeEnum{
         return &self._tetri_type;
     }
     
     /// 清理数据 / clear data
+    #[inline]
     pub fn clear(&mut self){
         self._occupied_coord = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
         self._occupied_index.clear();
@@ -173,6 +188,7 @@ impl Tetrimino{
                 _occupied_actual_pos : Vec::new(),
                 _coord               : IVec2::ZERO,
                 _pos_change_flag     : false,
+                _color               : 0,
             };
             
             Self::set_occupied(&mut tetrimino._occupied_coord, &mut tetrimino._occupied_index, index_need_to_spotted);

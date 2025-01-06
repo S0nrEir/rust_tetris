@@ -1,4 +1,5 @@
 ﻿use ggez::glam::Vec2;
+use crate::define::enum_define::TetriminoColorEnum;
 
 //------------------------------font------------------------------
 ///字体名称
@@ -63,4 +64,17 @@ pub const BORDER_POSITIONS : [Vec2;5] = [
     Vec2::new(600.0,750.0),
     Vec2::new(150.0,750.0),
     Vec2::new(150.0,50.0)
+];
+
+/// 演出效果时间 / Performing effect time 
+pub const PLAYFIELD_PERFORMING_INTERVAL : f32 = 3.;
+
+/// 方块颜色生成序列
+pub const BLOCK_COLOR_GEN_SEQUENCE : [TetriminoColorEnum;6] = [
+    TetriminoColorEnum::Cyan,
+    TetriminoColorEnum::Yellow,
+    TetriminoColorEnum::Red,
+    TetriminoColorEnum::Green,
+    TetriminoColorEnum::Cyan,
+    TetriminoColorEnum::Blue
 ];

@@ -1,4 +1,5 @@
 ﻿use std::any::Any;
+use std::collections::HashSet;
 use colored::Color;
 use ggez::{Context, GameResult, graphics};
 use ggez::glam::{IVec2, Vec2};
@@ -29,17 +30,33 @@ pub  struct ProcedurePlaying{
     // tick轮询时间 / tick polling time
     _delta_tick : f32,
     
-    //------------游玩逻辑相关------------
-    /// 当前的游玩状态
+    //------------游玩表现相关------------
+    /// 当前的游玩状态 / current playing state
     _curr_playing_state : PlayingStateEnum,
-    //表现要删除的游玩区域方块坐标集合
-    _performing_coords : Vec<IVec2>,
+    // 表现要删除的游玩区域方块坐标集合 / playing area block coordinates to be deleted
+    _performing_coords : HashSet<String>,
+    /// 表现效果持续时间 / duration of performance effect
+    _performing_duration : f32,
 }
 
 impl Drawable for ProcedurePlaying {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = self.draw_background(ctx);
+        
+        match self._curr_playing_state { 
+            PlayingStateEnum::Falling => {
+                
+            },
+            PlayingStateEnum::Performing => {
+                
+            },
+            PlayingStateEnum::Settlement => {
+            },
+            _ => {}
+        }
+        
         self.draw_border(ctx, &mut canvas);
+        self.draw_play_field(ctx,&mut canvas);
         return Ok(());
     }
 }
@@ -66,8 +83,8 @@ impl Tickable for ProcedurePlaying {
             }
             //有消除
             else{
-                self._performing_coords = cleared_line_cnt_and_coords.1;
-                self._curr_playing_state = PlayingStateEnum::Performing;
+                self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
+                self.switch_playing_state(PlayingStateEnum::Performing);
             }
         }
     }
@@ -80,8 +97,9 @@ impl TState for ProcedurePlaying{
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
         self._delta_tick = 0.;
-        self._curr_playing_state = PlayingStateEnum::Falling;
+        self.switch_playing_state(PlayingStateEnum::Falling);
         self._performing_coords.clear();
+        self._performing_duration = 0.;
     }
 
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
@@ -93,6 +111,7 @@ impl TState for ProcedurePlaying{
             PlayingStateEnum::Falling => {
                 //处理输入 / handle input
                 if self._input_interval < constant::INPUT_HANDLE_INTERVAL || key_code.is_none() {
+                    self._play_field.drop_once();
                     return Some(ProcedureEnum::Playing);
                 }
 
@@ -110,8 +129,8 @@ impl TState for ProcedurePlaying{
                             }
                             //到达顶部有消除，进行表现效果
                             else{
-                                self._performing_coords = cleared_line_cnt_and_coords.1;
-                                self._curr_playing_state = PlayingStateEnum::Performing;
+                                self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
+                                self.switch_playing_state(PlayingStateEnum::Performing);
                             }
                         }
                         //未到达顶部
@@ -128,8 +147,8 @@ impl TState for ProcedurePlaying{
                             }
                             //未到达顶部，有消除
                             else{
-                                self._performing_coords = cleared_line_cnt_and_coords.1;
-                                self._curr_playing_state = PlayingStateEnum::Performing;
+                                self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
+                                self.switch_playing_state(PlayingStateEnum::Performing);
                             }
                         }
 
@@ -152,10 +171,15 @@ impl TState for ProcedurePlaying{
             
             //处理表现
             PlayingStateEnum::Performing => {
-                
-                procedure_to_return = Some(ProcedureEnum::Playing);
-                self._performing_coords.clear();
-            },
+                self._performing_duration += delta_sec;
+                if self._performing_duration >= constant::PLAYFIELD_PERFORMING_INTERVAL{
+                    procedure_to_return = Some(ProcedureEnum::Playing);
+                    self._performing_duration = 0.;
+                    self._performing_coords.clear();
+                    self.switch_playing_state(PlayingStateEnum::Falling);
+                    self._play_field.generate_new_tetrimino();
+                }
+            },//end match performing
             
             //结算
             PlayingStateEnum::Settlement =>{
@@ -167,7 +191,7 @@ impl TState for ProcedurePlaying{
                 else{
                     procedure_to_return = Some(ProcedureEnum::Over);
                 }
-            }
+            }//end match settlement
             _ => {}
         }//end match
         
@@ -193,6 +217,29 @@ impl TState for ProcedurePlaying{
 
 impl ProcedurePlaying {
     
+    /// 添加区块坐标到要表现的坐标集合 / add block coordinates to the set of coordinates to be performed
+    fn add_to_performing_coords(&mut self,performing_coords : Vec<IVec2>){
+        for coords in performing_coords.iter(){
+            self._performing_coords.insert(format!("{}{}",coords.x,coords.y));
+        }
+    }
+    
+    /// 切换到指定的游玩状态 / switch to the specified playing state
+    fn switch_playing_state(&mut self,state_to_switch:PlayingStateEnum){
+        match state_to_switch { 
+            PlayingStateEnum::Falling => {
+            },
+            PlayingStateEnum::Performing => {
+                self._performing_duration = 0.;
+                self._performing_coords.clear();
+            },
+            PlayingStateEnum::Settlement => {
+            },
+            _ => {}
+        }
+        self._curr_playing_state = state_to_switch;
+    }
+    
     /// 绘制背景 / draw background
     fn draw_background(&mut self,ctx:&mut Context) -> Canvas{
         return  Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
@@ -204,6 +251,40 @@ impl ProcedurePlaying {
         if let Ok(left_border) = left_border{
             canvas.draw(&left_border, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
         }
+    }
+    
+    /// 绘制游玩区域 / draw play field
+    fn draw_play_field(&self,ctx:&mut Context,canvas:&mut Canvas){
+        let block_area = self._play_field.get_block_area();
+        for i in 0..block_area.len(){
+            for j in 0..block_area[i].len(){
+                //绘制处于表现效果的块
+                if self._performing_coords.len() > 0 && self._performing_coords.contains(&block_area[i][j].coord_as_string()){
+                    
+                }
+                //绘制其他
+                else{
+                    
+                }
+                // let cell = &block_area[i][j];
+                // if cell.is_occupied(){
+                //     let mesh_rect = Mesh::new_rectangle(
+                //         ctx,
+                //         ggez::graphics::DrawMode::fill(),
+                //         ggez::graphics::Rect::new(0.0, 0.0, constant::BLOCK_SIZE as f32, constant::BLOCK_SIZE as f32),
+                //         ggez::graphics::Color::WHITE
+                //     );
+                //     if let Ok(mesh_rect) = mesh_rect{
+                //         canvas.draw(&mesh_rect, DrawParam::default().dest(Vec2::new(cell.get_world_position().x, cell.get_world_position().y)));
+                //     }
+                // }
+            }
+        }
+    }
+    
+    /// 绘制游玩信息 / draw playing info
+    fn draw_playing_info(&self,ctx:&mut Context,canvas:&mut Canvas){
+        
     }
     
     /// 结算 / stop game
@@ -220,7 +301,8 @@ impl ProcedurePlaying {
             _input_interval : 0.,
             _delta_tick : 0.,
             _curr_playing_state : PlayingStateEnum::Start,
-            _performing_coords : Vec::new(),
+            _performing_coords : HashSet::new(),
+            _performing_duration : 0.,
         };
     }
 }

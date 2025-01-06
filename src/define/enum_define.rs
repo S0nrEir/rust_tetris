@@ -76,3 +76,21 @@ impl TetriminoTypeEnum {
         return START_INDEX..END_INDEX;
     }
 }
+
+/// 当前控制的方块颜色 / Current controlled block color
+#[derive(Debug, Clone, Copy)]
+pub enum TetriminoColorEnum{
+    Green = 0,
+    Red,
+    Blue,
+    Yellow,
+    Purple,
+    Cyan,
+}
+
+/// 游玩区域方块颜色 / Play field block color
+#[derive(Debug, Clone, Copy)]
+pub enum PlayFieldColorEnum{
+    BlockColor(TetriminoColorEnum),
+    Black
+}
