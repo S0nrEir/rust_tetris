@@ -43,9 +43,9 @@ pub const COLOR_ALPHA_1 : [f32;1] = [1.0];
 pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
 
 //------------------------------block------------------------------
-/// 横向可容纳的方块的最大数量 / Maximum number of blocks that can be accommodated horizontally
+/// 列数
 pub const BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT : usize = 10;
-/// 纵向可容纳的方块的最大数量 / Maximum number of blocks that can be accommodated vertically
+/// 行数
 pub const BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT : usize = 20;
 /// 单个方块的尺寸 / size of a single block
 pub const BLOCK_SIZE : u8 = 10;

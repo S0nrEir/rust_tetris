@@ -70,7 +70,7 @@ impl PlayField {
                 // }
                 let tetri_color = curr_tetrimino.color();
                 let old_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
-                curr_tetrimino.update_coord(IVec2::new(0,1));
+                curr_tetrimino.update_coord(IVec2::new(1,0));
                 let new_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
                 //检查下落后是否有碰撞
                 if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_block_coords) {
@@ -106,7 +106,6 @@ impl PlayField {
                     // for coord in new_actual_coords.iter_mut(){
                     //     coord.y += 1;
                     // }
-                    
                     if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_coords) {
                         Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                         drop_succ = true;
@@ -374,7 +373,7 @@ impl PlayField {
         for coord in coords_to_update.iter(){
             let x = coord.x as usize;
             let y = coord.y as usize;
-            let mut curr_cell = block_area[coord.x as usize][coord.y as usize]; 
+            let mut curr_cell = block_area[coord.x as usize][coord.y as usize];
             if x < 0 || x >= constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT || y < 0 || y >= constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT {
                 log("play_field.rs","update_block_area() ---> coord out of range",LogLevelEnum::Error);
                 return false;
@@ -434,6 +433,7 @@ impl PlayField {
     /// * 是否冲突 / whether conflict
     pub fn detect_tetrimino_collision(block_area:&[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT],tetri_actual_coords : &Vec<IVec2>) -> bool{
         for coords in tetri_actual_coords{
+            log("play_field.rs",&format!("x : {} , y : {}",coords.x,coords.y),LogLevelEnum::Info);
             if block_area[coords.x as usize][coords.y as usize].is_occupied() {
                 return true;
             }
