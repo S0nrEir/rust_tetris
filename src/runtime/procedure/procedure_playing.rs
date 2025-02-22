@@ -30,10 +30,14 @@ pub  struct ProcedurePlaying{
     // tick轮询时间 / tick polling time
     _delta_tick : f32,
     
+    //绘制相关 / draw related
+    /// 要绘制的mesh集合，每一个mesh表示一个方块 / mesh collection to be drawn, each mesh represents a block
+    //_meshes: [[Mesh;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT],
+    
     //------------游玩表现相关------------
     /// 当前的游玩状态 / current playing state
     _curr_playing_state : PlayingStateEnum,
-    // 表现要删除的游玩区域方块坐标集合 / playing area block coordinates to be deleted
+    /// 表现要删除的游玩区域方块坐标集合 / playing area block coordinates to be deleted
     _performing_coords : HashSet<String>,
     /// 表现效果持续时间 / duration of performance effect
     _performing_duration : f32,
@@ -302,7 +306,7 @@ impl ProcedurePlaying {
             _delta_tick : 0.,
             _curr_playing_state : PlayingStateEnum::Start,
             _performing_coords : HashSet::new(),
-            _performing_duration : 0.,
+            _performing_duration : 0., 
         };
     }
 }
