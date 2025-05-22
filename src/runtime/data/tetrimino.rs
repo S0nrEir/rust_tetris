@@ -1,9 +1,7 @@
 ﻿use ggez::glam::{IVec2, ivec2, Vec2};
-use rand::Rng;
 use crate::constant;
 use crate::constant::BLOCK_MAX_OCCUPIED;
 use crate::define::enum_define::{TetriminoColorEnum, TetriminoTypeEnum};
-use crate::runtime::data::play_field::PlayField;
 use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::tools::logger::{log, LogLevelEnum};
 
@@ -12,18 +10,11 @@ use crate::tools::logger::{log, LogLevelEnum};
 pub struct Tetrimino{
     /// 方块类型 / type
     _tetri_type : TetriminoTypeEnum,
-    ///被占位的grid坐标位置 / grid coordinate position occupied
-    _occupied_coord : [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
-    /// 被占位的grid位置的索引 / index of the grid position occupied
-    _occupied_index : Vec<IVec2>,
-    /// 方块在grid坐标系统中的实际位置 / actual position in the grid coordinate system
-    _occupied_actual_pos : Vec<IVec2>,
-    /// grid中的实际位置，方块的中心位置 / actual position in the grid, the center position of the block
-    _coord : IVec2,
-    /// 是否需要更新位置 / whether to update the position
-    _pos_change_flag : bool,
-    /// 方块颜色下标 / block color
-    _color : usize,
+    /// 方块当前的角度
+    _curr_angle : u16,
+    /// 每个方块的最小单位，表示在游玩区域中的坐标位置 / the minimum unit of each block, indicating the coordinate position in the play area
+    _minos : Vec<IVec2>,
+
 }
 
 impl Tetrimino{
@@ -34,116 +25,167 @@ impl Tetrimino{
     /// #Return
     /// * 返回是否生成成功 / return whether it is generated successfully
     pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
-        let mut rand = rand::thread_rng();
-        let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
-        let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
-        
-        if let Ok(new_tetri_type) = new_tetri_type {
-            self._tetri_type = new_tetri_type;
-            let index_need_to_spotted = Self::get_spotted_idx(&new_tetri_type);
-            Self::set_occupied(&mut self._occupied_coord, &mut self._occupied_index, index_need_to_spotted);
-            //更新位置
-            // let new_pos = rand.gen_range(0..constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT);
-            //暂时放到中间
-            let new_pos = constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT / 2;
-            self._coord = IVec2::new(new_pos as i32,0);
-            self._pos_change_flag = true;
-            let actual_coords = self.block_actual_coord();
-            let detected_collision = !PlayField::detect_tetrimino_collision(&blocl_area,&actual_coords);
-            
-            self._color += 1;
-            self._color = self._color % constant::BLOCK_COLOR_GEN_SEQUENCE.len();
-            
-            return !detected_collision;
-        }
-        else{
-            log("Tetrimino.rs","gen_as_new() ---> new tetri type is none",LogLevelEnum::Fatal);
-            panic!();
-        }
+
     }
     
     /// 获取占位方块在grid坐标中的坐标位置 / get the coordinate position of the block in the grid coordinate
     /// #Return
     /// * 返回占位方块在grid坐标中的坐标位置 / return the coordinate position of the block in the grid coordinate
     pub fn block_actual_coord(&mut self) -> &Vec<IVec2>{
-        if self._pos_change_flag {
-            self.update_occupied();
-            self._pos_change_flag = false;
-        }
-        return &self._occupied_actual_pos;
+        return &self._minos;
     }
-    
-    /// 获取向左/向右旋转后的方块坐标组
+
+    /// 旋转当前方块 / rotate the current block
     /// #Arguments
-    /// * turn_right - 是否向右旋转 / whether to rotate to the right
-    /// #Return
-    /// * 返回旋转后的方块坐标组 / return the rotated block coordinate group
-    // pub fn get_rotated_block(&self,turn_right:bool) -> [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED]{
-    //     let mut rotated = self._occupied_coord.clone();
-    //     let len = rotated.len(); 
-    //     if len == 0 || rotated[0].len() == 0 {
-    //         log("Tetrimino.rs","get_rotated_block() ---> rotated is empty",LogLevelEnum::Fatal);
-    //         return [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-    //     }
-    //     
-    //     for i in 0..len{
-    //         for j in 0..len{
-    //             if turn_right {
-    //                 rotated[j][len-1-i] = self._occupied_coord[i][j];
-    //             }
-    //             else{
-    //                 rotated[len-1-j][i] = self._occupied_coord[i][j];
-    //             }
-    //         }
-    //     }
-    //     
-    //     if turn_right {
-    //         return rotated;
-    //     }
-    //     else{
-    //         let mut rotated_left = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-    //         for i in 0..BLOCK_MAX_OCCUPIED{
-    //             for j in 0..BLOCK_MAX_OCCUPIED{
-    //                 rotated_left[i][j] = rotated[j][BLOCK_MAX_OCCUPIED - 1 - i];
-    //             }
-    //         }
-    //         return rotated_left;
-    //     }
-    // }
-    
-    /// 旋转方块 / rotate the block
-    /// #Arguments
-    /// * turn_right - 是否向右旋转，如果为false则向左旋转 / whether to rotate to the right, if false, rotate to the left
-    pub fn rotate(&mut self,turn_right:bool){
-        if turn_right {
-            self._occupied_coord.rotate_right(1);
+    /// * direction - 旋转方向方块，true表示顺时针，false表示逆时针 / rotation direction of the block, true means clockwise, false means counterclockwise
+    pub fn rotate(&mut self, clock_wise : bool) -> bool
+    {
+        let old_angle = self._curr_angle;
+        if clock_wise{
+            self._curr_angle = if self._curr_angle == 270{ 0 } else { self._curr_angle + 90 };
         }
-        else{
-            self._occupied_coord.rotate_left(1);
+        else {
+            self._curr_angle = if self._curr_angle == 0 { 270 } else { self._curr_angle - 90 };
         }
-        self._pos_change_flag = true;
+        
+        let mut is_negate = 0;
+        let tetri_offsets: &[IVec2];
+
+        match self._tetri_type {
+            TetriminoTypeEnum::RightSnake =>{
+                is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
+                tetri_offsets = &constant::TETRI_OFFSET_RIGHT_SNAKE;
+                // let mut i : usize = 0;
+                //     for offset in constant::TETRI_OFFSET_RIGHT_SNAKE {
+                //         self._minos[i].x = offset.x * is_negate + self._minos[i].x;
+                //         self._minos[i].y = offset.y * is_negate + self._minos[i].y;
+                //         i += 1;
+                //     }
+            }//right sanke
+
+            TetriminoTypeEnum::LeftSnake => {
+                is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
+                tetri_offsets = &constant::TETRI_OFFSET_LEFT_SNAKE;
+                // let mut i : usize = 0;
+                //     for offset in constant::TETRI_OFFSET_LEFT_SNAKE {
+                //         self._minos[i].x = offset.x * is_negate + self._minos[i].x;
+                //         self._minos[i].y = offset.y * is_negate + self._minos[i].y;
+                //         i += 1;
+                //     }
+            }
+
+            TetriminoTypeEnum::RightGun => {
+                
+                match old_angle {
+                    0 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_RIGHT_GUN_0_90} else {&constant::TETRI_OFFSET_RIGHT_GUN_270_0};
+                    }
+                    90 =>{
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_RIGHT_GUN_90_180} else {&constant::TETRI_OFFSET_RIGHT_GUN_0_90};
+                    }
+                    180 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_RIGHT_GUN_180_270} else {&constant::TETRI_OFFSET_RIGHT_GUN_90_180};
+                    }
+                    270 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_RIGHT_GUN_270_0} else {&constant::TETRI_OFFSET_RIGHT_GUN_180_270};
+                    }
+                    _ =>{
+                        log("Tetrimino.rs",&format!("invalid old_angle, old_angle: {} , tetri type : {:?}", old_angle,self._tetri_type),LogLevelEnum::Fatal);
+                        panic!();
+                    }
+
+                }//match curr_angle
+            }//left gun
+
+            TetriminoTypeEnum::LeftGun => {
+                match old_angle {
+                     0 =>{
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_0_90} else {&constant::TETRI_OFFSET_LEFT_GUN_270_0};
+                     }
+                     90 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_90_180} else {&constant::TETRI_OFFSET_LEFT_GUN_0_90};
+                     }
+                     180 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_180_270} else {&constant::TETRI_OFFSET_LEFT_GUN_90_180};
+                     }
+                     270 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_270_0} else {&constant::TETRI_OFFSET_LEFT_GUN_180_270};
+                     }
+                    _=> {
+                        log("Tetrimino.rs",&format!("invalid old_angle, old_angle: {} , tetri type : {:?}", old_angle,self._tetri_type),LogLevelEnum::Fatal);
+                        panic!();
+                    }
+                }//match curr_angle
+            }//right gun
+
+            TetriminoTypeEnum::T => {
+                match  old_angle {
+                    0 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_0_90} else {&constant::TETRI_OFFSET_LEFT_GUN_270_0};
+                    }
+                    90 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_90_180} else {&constant::TETRI_OFFSET_LEFT_GUN_0_90};
+                    }
+                    180 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_180_270} else {&constant::TETRI_OFFSET_LEFT_GUN_90_180};
+                    }
+                    270 => {
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_270_0} else {&constant::TETRI_OFFSET_LEFT_GUN_180_270};
+                    }
+                    _ => {
+                        log("Tetrimino.rs",&format!("invalid old_angle, old_angle: {} , tetri type : {:?}", old_angle,self._tetri_type),LogLevelEnum::Fatal);
+                        panic!();
+                    }
+                }
+            }//T
+
+            TetriminoTypeEnum::Stick => {
+                is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
+                tetri_offsets = &constant::TETRI_OFFSET_STICK;
+            }//stick
+
+            //square啥也不用干 / square doesn't need to do anything
+            TetriminoTypeEnum::Square =>{
+                return true;
+            }//square
+
+            _=>{
+                log("Tetrimino.rs","invalid tetri type",LogLevelEnum::Fatal);
+                panic!();
+            }
+        }
+        
+        let mut i : usize = 0;
+        for offset in tetri_offsets {
+            self._minos[i].x = offset.x * is_negate + self._minos[i].x;
+            self._minos[i].y = offset.y * is_negate + self._minos[i].y;
+            i += 1;
+        }
+        return true;
     }
     
     /// 更新方块在grid中的坐标位置 / update the coordinate position of the block in the grid
     /// #Arguments
     /// * offset - 偏移量 / offset
     pub fn update_coord(&mut self,offset:IVec2){
-        self._pos_change_flag = true;
-        self._coord = self._coord + offset;
+        for i in 0..self._minos.len(){
+            self._minos[i].x += offset.x;
+            self._minos[i].y += offset.y;
+        }
     }
     
     /// 获取方块颜色 / get the block color
     #[inline]
     pub fn color(&self) -> TetriminoColorEnum{
-        return constant::BLOCK_COLOR_GEN_SEQUENCE[self._color].clone();
+        let index = self._tetri_type as usize;
+        if index >= constant::BLOCK_COLOR_GEN_SEQUENCE.len(){
+            log("Tetrimino.rs","color() ---> index out of range",LogLevelEnum::Fatal);
+            panic!();
+        }
+        return constant::BLOCK_COLOR_GEN_SEQUENCE[index];
     }
     
-    ///获取在pos在grid中的坐标位置 / get the actual position in the grid
-    #[inline]
-    pub fn get_coord(&self) -> &IVec2{
-        return &self._coord;
-    }
-    
+    /// 获取方块类型 / get the block type
     #[inline]
     pub fn get_type(&self) -> &TetriminoTypeEnum{
         return &self._tetri_type;
@@ -152,52 +194,50 @@ impl Tetrimino{
     /// 清理数据 / clear data
     #[inline]
     pub fn clear(&mut self){
-        self._occupied_coord = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-        self._occupied_index.clear();
-        self._occupied_actual_pos.clear();
-        self._coord = IVec2::ZERO;
-        self._pos_change_flag = false;
+        self._curr_angle = 0;
     }
     
     /// 更新占位方块的坐标在grid坐标系统中的下标索引 / update the index of the occupied block coordinate in the grid coordinate system
     fn update_occupied(&mut self){
-        self._occupied_index.clear();
-        self._occupied_actual_pos.clear();
-        for (i, row) in self._occupied_coord.iter().enumerate() {
-            for (j, &is_block) in row.iter().enumerate() {
-                
-                if (is_block != 1) {
-                    continue;
-                }
-                
-                let xy = IVec2::new(i as i32,j as i32);
-                self._occupied_index.push(IVec2::new(xy.x,xy.y));
-                self._occupied_actual_pos.push(IVec2::new( self._coord.x + xy.x,self._coord.y + xy.y));
-            }
-       }
     }
     
     pub fn new(tetri_type : isize) -> Option<Self> {
         let tetri_enum = TetriminoTypeEnum::try_from(tetri_type);
-        if let Ok(tetri_type) = tetri_enum {
-            let index_need_to_spotted = Self::get_spotted_idx(&tetri_enum.unwrap());
-            let mut tetrimino = Tetrimino{
-                _tetri_type          : tetri_type,
-                _occupied_coord      : [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
-                _occupied_index      : Vec::new(),
-                _occupied_actual_pos : Vec::new(),
-                _coord               : IVec2::ZERO,
-                _pos_change_flag     : false,
-                _color               : 0,
+        if let Ok(tetri_type) = tetri_enum{
+            let mut new_tetrimino = Tetrimino{
+                _tetri_type : tetri_type,
+                _curr_angle : 0,
+                _minos : Self::get_spotted_minos(tetri_type),
+                // _mino_rotation_flag : false,
             };
             
-            Self::set_occupied(&mut tetrimino._occupied_coord, &mut tetrimino._occupied_index, index_need_to_spotted);
-            return Some(tetrimino);
+            return Some(new_tetrimino);
         }
-        else{
+        else {
             log("Tetrimino.rs","new() ---> tetri enum is none",LogLevelEnum::Fatal);
             panic!();
         }
+
+        // let tetri_enum = TetriminoTypeEnum::try_from(tetri_type);
+        // if let Ok(tetri_type) = tetri_enum {
+        //     let index_need_to_spotted = Self::get_spotted_idx(&tetri_enum.unwrap());
+        //     let mut tetrimino = Tetrimino{
+        //         _tetri_type          : tetri_type,
+        //         _occupied_coord      : [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
+        //         _occupied_index      : Vec::new(),
+        //         _occupied_actual_pos : Vec::new(),
+        //         _coord               : IVec2::ZERO,
+        //         _pos_change_flag     : false,
+        //         _color               : 0,
+        //     };
+            
+        //     Self::set_occupied(&mut tetrimino._occupied_coord, &mut tetrimino._occupied_index, index_need_to_spotted);
+        //     return Some(tetrimino);
+        // }
+        // else{
+        //     log("Tetrimino.rs","new() ---> tetri enum is none",LogLevelEnum::Fatal);
+        //     panic!();
+        // }
     }
     
     ///设置占位方块 / set the block
@@ -206,73 +246,111 @@ impl Tetrimino{
         occupied_index:&mut Vec<IVec2>,
         idx_need_to_spotted:Vec<IVec2>){
         
-        //reset
-        for i in 0..BLOCK_MAX_OCCUPIED{
-            for j in 0..BLOCK_MAX_OCCUPIED{
-                occupied[i][j] = 0;
-            }
-        }
-        occupied_index.clear();
-        for index in idx_need_to_spotted.iter(){
-            occupied[index.x as usize][index.y as usize] = 1;
-            occupied_index.push(index.clone());
-        }
     }
-    
-    /// 获取要标记的方块坐标下标集合 / get the set of block coordinate subscripts to be marked
-    fn get_spotted_idx(tetri_type : &TetriminoTypeEnum) -> Vec<IVec2>{
-        // let mut occupied = [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED];
-        // let mut occupied_index = Vec::new();
-        let mut index_need_to_spotted = Vec::new();
+
+    fn set_spotted_minos(&mut self, tetri_type : TetriminoTypeEnum,minos:&mut Vec<IVec2>){
+        minos.clear();
         match tetri_type {
             TetriminoTypeEnum::Stick => {
-                index_need_to_spotted.push(IVec2::new(0, 0));
-                index_need_to_spotted.push(IVec2::new(1, 0));
-                index_need_to_spotted.push(IVec2::new(2, 0));
-                index_need_to_spotted.push(IVec2::new(3, 0));
-            },
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(1,4));
+                minos.push(ivec2(2,4));
+                minos.push(ivec2(3,4));
+            }
             TetriminoTypeEnum::LeftGun => {
-                index_need_to_spotted.push(IVec2::new(0, 1));
-                index_need_to_spotted.push(IVec2::new(1, 1));
-                index_need_to_spotted.push(IVec2::new(2, 1));
-                index_need_to_spotted.push(IVec2::new(2, 0));
-            },
+                minos.push(ivec2(0,3));
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(0,5));
+                minos.push(ivec2(1,5));
+            }
             TetriminoTypeEnum::RightGun => {
-                index_need_to_spotted.push(IVec2::new(0, 0));
-                index_need_to_spotted.push(IVec2::new(1, 0));
-                index_need_to_spotted.push(IVec2::new(2, 0));
-                index_need_to_spotted.push(IVec2::new(2, 1));
-            },
+                minos.push(ivec2(0,3));
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(0,5));
+                minos.push(ivec2(1,0));
+            }
             TetriminoTypeEnum::Square => {
-                index_need_to_spotted.push(IVec2::new(0, 0));
-                index_need_to_spotted.push(IVec2::new(0, 1));
-                index_need_to_spotted.push(IVec2::new(1, 0));
-                index_need_to_spotted.push(IVec2::new(1, 1));
-            },
+                minos.push(ivec2(0,3));
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(1,3));
+                minos.push(ivec2(1,4));
+            }
             TetriminoTypeEnum::RightSnake => {
-                index_need_to_spotted.push(IVec2::new(0, 1));
-                index_need_to_spotted.push(IVec2::new(0, 2));
-                index_need_to_spotted.push(IVec2::new(1, 0));
-                index_need_to_spotted.push(IVec2::new(1, 1));
-                
-            },
+                minos.push(ivec2(1,3));
+                minos.push(ivec2(1,4));
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(0,5));
+            }
             TetriminoTypeEnum::LeftSnake => {
-                index_need_to_spotted.push(IVec2::new(0, 0));
-                index_need_to_spotted.push(IVec2::new(0, 1));
-                index_need_to_spotted.push(IVec2::new(1, 1));
-                index_need_to_spotted.push(IVec2::new(1, 2));
-            },
+                minos.push(ivec2(0,3));
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(1,4));
+                minos.push(ivec2(1,5));
+            }
             TetriminoTypeEnum::T => {
-                index_need_to_spotted.push(IVec2::new(0, 0));
-                index_need_to_spotted.push(IVec2::new(0, 1));
-                index_need_to_spotted.push(IVec2::new(0, 2));
-                index_need_to_spotted.push(IVec2::new(1, 1));
-            },
+                minos.push(ivec2(0,3));
+                minos.push(ivec2(0,4));
+                minos.push(ivec2(0,5));
+                minos.push(ivec2(1,3));
+            }
             _ => {
-                log("Tetrimino.rs","spot_occupied() ---> error",LogLevelEnum::Fatal);
-                panic!();
+                    log("Tetrimino.rs","set_spotted_minos() ---> tetri enum is none",LogLevelEnum::Fatal);
+                    panic!();
             }
         }
-        return index_need_to_spotted;
+    }
+
+    fn get_spotted_minos(tetri_type : TetriminoTypeEnum) -> Vec<IVec2>{
+        let mut minos : Vec<IVec2> = Vec::new();
+        match tetri_type {
+            TetriminoTypeEnum::Stick => {
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(1,4));
+                        minos.push(ivec2(2,4));
+                        minos.push(ivec2(3,4));
+                    }
+            TetriminoTypeEnum::LeftGun => {
+                        minos.push(ivec2(1,5));
+                        minos.push(ivec2(0,5));
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(0,3));
+                    }
+            TetriminoTypeEnum::RightGun => {
+                        minos.push(ivec2(1,0));
+                        minos.push(ivec2(0,3));
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(0,5));
+                    }
+            TetriminoTypeEnum::Square => {
+                        minos.push(ivec2(0,3));
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(1,3));
+                        minos.push(ivec2(1,4));
+                    }
+            TetriminoTypeEnum::RightSnake => {
+                        minos.push(ivec2(1,3));
+                        minos.push(ivec2(1,4));
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(0,5));
+                    }
+            TetriminoTypeEnum::LeftSnake => {
+                        minos.push(ivec2(0,3));
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(1,4));
+                        minos.push(ivec2(1,5));
+                    }
+            TetriminoTypeEnum::T => {
+                        minos.push(ivec2(0,3));
+                        minos.push(ivec2(0,4));
+                        minos.push(ivec2(0,5));
+                        minos.push(ivec2(1,3));
+                    }
+            _ => {
+                        log("Tetrimino.rs","get_spotted_minos() ---> tetri enum is none",LogLevelEnum::Fatal);
+                        panic!();
+                    }
+        }
+
+        return minos;
     }
 }

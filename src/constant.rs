@@ -1,4 +1,4 @@
-﻿use ggez::glam::Vec2;
+﻿use ggez::glam::{IVec2, Vec2};
 use crate::define::enum_define::TetriminoColorEnum;
 
 //------------------------------font------------------------------
@@ -70,11 +70,118 @@ pub const BORDER_POSITIONS : [Vec2;5] = [
 pub const PLAYFIELD_PERFORMING_INTERVAL : f32 = 3.;
 
 /// 方块颜色生成序列
-pub const BLOCK_COLOR_GEN_SEQUENCE : [TetriminoColorEnum;6] = [
+pub const BLOCK_COLOR_GEN_SEQUENCE : [TetriminoColorEnum;7] = [
     TetriminoColorEnum::Cyan,
     TetriminoColorEnum::Yellow,
     TetriminoColorEnum::Red,
     TetriminoColorEnum::Green,
     TetriminoColorEnum::Cyan,
-    TetriminoColorEnum::Blue
+    TetriminoColorEnum::Blue,
+    TetriminoColorEnum::White
+];
+
+pub const TETRI_OFFSET_RIGHT_SNAKE : [IVec2;4] = [
+    IVec2::new(-1,1),
+    IVec2::new(0,0),
+    IVec2::new(1,1),
+    IVec2::new(2,0)
+];
+
+pub const TETRI_OFFSET_LEFT_SNAKE : [IVec2;4] = [
+    IVec2::new(0,2),
+    IVec2::new(1,1),
+    IVec2::new(0,-1),
+    IVec2::new(1,-2)
+];
+
+pub const TETRI_OFFSET_RIGHT_GUN_0_90 : [IVec2;4] = [
+    IVec2::new(-1,0),
+    IVec2::new(0,1),
+    IVec2::new(1,0),
+    IVec2::new(2,-1)
+];
+
+pub const TETRI_OFFSET_RIGHT_GUN_90_180 : [IVec2;4] = [
+    IVec2::new(0,2),
+    IVec2::new(1,1),
+    IVec2::new(0,0),
+    IVec2::new(-1,-1)
+];
+
+pub const TETRI_OFFSET_RIGHT_GUN_180_270 : [IVec2;4] = [
+    IVec2::new(2,-1),
+    IVec2::new(1,-2),
+    IVec2::new(0,-1),
+    IVec2::new(-1,0)
+];
+
+pub const TETRI_OFFSET_RIGHT_GUN_270_0 : [IVec2;4] = [
+    IVec2::new(-1,-1),
+    IVec2::new(-2,0),
+    IVec2::new(-1,1),
+    IVec2::new(0,2)
+];
+
+
+pub const TETRI_OFFSET_LEFT_GUN_0_90 : [IVec2;4] = [
+    IVec2::new(1,-2),
+    IVec2::new(2,1),
+    IVec2::new(1,0),
+    IVec2::new(1,-2),
+];
+
+pub const TETRI_OFFSET_LEFT_GUN_90_180 : [IVec2;4] = [
+    IVec2::new(-2,0),
+    IVec2::new(-1,-1),
+    IVec2::new(0,0),
+    IVec2::new(0,2)
+];
+
+pub const TETRI_OFFSET_LEFT_GUN_180_270 : [IVec2;4] = [
+    IVec2::new(0,1),
+    IVec2::new(1,-2),
+    IVec2::new(0,-1),
+    IVec2::new(-1,0),
+];
+
+pub const TETRI_OFFSET_LEFT_GUN_270_0 : [IVec2;4] = [
+    IVec2::new(1,1),
+    IVec2::new(0,2),
+    IVec2::new(-1,1),
+    IVec2::new(-2,0)
+];
+
+pub const TETRI_OFFSET_T_0_90 : [IVec2;4] = [
+    IVec2::new(0,1),
+    IVec2::new(1,0),
+    IVec2::new(2,-1),
+    IVec2::new(0,-1)
+];
+
+pub const TETRI_OFFSET_T_90_180 : [IVec2;4] = [
+    IVec2::new(1,1),
+    IVec2::new(0,0),
+    IVec2::new(-1,-1),
+    IVec2::new(-1,1)
+];
+
+pub const TETRI_OFFSET_T_180_270 : [IVec2;4] = [
+    IVec2::new(1,-2),
+    IVec2::new(0,-1),
+    IVec2::new(-1,0),
+    IVec2::new(1,0)
+];
+
+pub const TETRI_OFFSET_T_270_0 : [IVec2;4] = [
+    IVec2::new(-2,0),
+    IVec2::new(-1,1),
+    IVec2::new(0,2),
+    IVec2::new(0,0)
+];
+
+pub const TETRI_OFFSET_STICK : [IVec2;4] = [
+    IVec2::new(0,0),
+    IVec2::new(-1,1),
+    IVec2::new(-2,2),
+    IVec2::new(-3,3)
 ];
