@@ -1,9 +1,14 @@
-﻿use ggez::glam::{IVec2, ivec2, Vec2};
+﻿use core::panic;
+
+use ggez::glam::{IVec2, ivec2, Vec2};
+use rand::Rng;
 use crate::constant;
 use crate::constant::BLOCK_MAX_OCCUPIED;
 use crate::define::enum_define::{TetriminoColorEnum, TetriminoTypeEnum};
 use crate::runtime::data::teri_grid::TetriGridCell;
 use crate::tools::logger::{log, LogLevelEnum};
+
+use super::play_field::PlayField;
 
 /// 表示一个俄罗斯方块 / A tetrimino
 #[derive(Debug,Clone)]
@@ -14,7 +19,7 @@ pub struct Tetrimino{
     _curr_angle : u16,
     /// 每个方块的最小单位，表示在游玩区域中的坐标位置 / the minimum unit of each block, indicating the coordinate position in the play area
     _minos : Vec<IVec2>,
-
+    _color_index : usize,
 }
 
 impl Tetrimino{
@@ -23,8 +28,32 @@ impl Tetrimino{
     /// #Arguments
     /// * blocl_area - 游戏区域的方块数据 / block data of the game area
     /// #Return
-    /// * 返回是否生成成功 / return whether it is generated successfully
-    pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT]) -> bool{
+    /// * 返回一个元组，第一个值表示生成是否成功，第二个值表示失败原因 / return a tuple, the first value indicates whether the generation was successful, and the second value indicates the reason for failure
+    pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS]) -> (bool,String) {
+
+        let gen_succ = true;
+        let mut failed_msg: String = String::new();
+        let mut rand = rand::thread_rng();
+        let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
+        let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
+
+        if let Ok(tetri_type) = new_tetri_type{
+            self.clear();
+            self._tetri_type = tetri_type;
+            Self::set_spotted_minos( tetri_type, &mut self._minos );
+            let detected_collision = PlayField::detect_tetrimino_collision(&blocl_area,&self._minos);
+            
+            gen_succ != !detected_collision;
+            if detected_collision {
+                failed_msg = format!("gen_as_new() ---> tetri type : {:?} , collision detected",self._tetri_type);
+            }
+
+            return (gen_succ , failed_msg);
+        }
+        else {
+            log("Tetrimino.rs","gen_as_new() ---> new tetri type is none",LogLevelEnum::Fatal);
+            panic!("gen_as_new() ---> tetri enum is none");
+        }
 
     }
     
@@ -167,6 +196,7 @@ impl Tetrimino{
     /// 更新方块在grid中的坐标位置 / update the coordinate position of the block in the grid
     /// #Arguments
     /// * offset - 偏移量 / offset
+    #[inline]
     pub fn update_coord(&mut self,offset:IVec2){
         for i in 0..self._minos.len(){
             self._minos[i].x += offset.x;
@@ -177,12 +207,11 @@ impl Tetrimino{
     /// 获取方块颜色 / get the block color
     #[inline]
     pub fn color(&self) -> TetriminoColorEnum{
-        let index = self._tetri_type as usize;
-        if index >= constant::BLOCK_COLOR_GEN_SEQUENCE.len(){
+        if self._color_index >= constant::BLOCK_COLOR_GEN_SEQUENCE.len(){
             log("Tetrimino.rs","color() ---> index out of range",LogLevelEnum::Fatal);
             panic!();
         }
-        return constant::BLOCK_COLOR_GEN_SEQUENCE[index];
+        return constant::BLOCK_COLOR_GEN_SEQUENCE[self._color_index];
     }
     
     /// 获取方块类型 / get the block type
@@ -195,6 +224,8 @@ impl Tetrimino{
     #[inline]
     pub fn clear(&mut self){
         self._curr_angle = 0;
+        self._minos.clear();
+        self._tetri_type = TetriminoTypeEnum::None;
     }
     
     /// 更新占位方块的坐标在grid坐标系统中的下标索引 / update the index of the occupied block coordinate in the grid coordinate system
@@ -208,7 +239,7 @@ impl Tetrimino{
                 _tetri_type : tetri_type,
                 _curr_angle : 0,
                 _minos : Self::get_spotted_minos(tetri_type),
-                // _mino_rotation_flag : false,
+                _color_index : tetri_type as usize,
             };
             
             return Some(new_tetrimino);
@@ -217,38 +248,10 @@ impl Tetrimino{
             log("Tetrimino.rs","new() ---> tetri enum is none",LogLevelEnum::Fatal);
             panic!();
         }
-
-        // let tetri_enum = TetriminoTypeEnum::try_from(tetri_type);
-        // if let Ok(tetri_type) = tetri_enum {
-        //     let index_need_to_spotted = Self::get_spotted_idx(&tetri_enum.unwrap());
-        //     let mut tetrimino = Tetrimino{
-        //         _tetri_type          : tetri_type,
-        //         _occupied_coord      : [[0;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
-        //         _occupied_index      : Vec::new(),
-        //         _occupied_actual_pos : Vec::new(),
-        //         _coord               : IVec2::ZERO,
-        //         _pos_change_flag     : false,
-        //         _color               : 0,
-        //     };
-            
-        //     Self::set_occupied(&mut tetrimino._occupied_coord, &mut tetrimino._occupied_index, index_need_to_spotted);
-        //     return Some(tetrimino);
-        // }
-        // else{
-        //     log("Tetrimino.rs","new() ---> tetri enum is none",LogLevelEnum::Fatal);
-        //     panic!();
-        // }
     }
     
-    ///设置占位方块 / set the block
-    pub fn set_occupied(
-        occupied : &mut [[u8;BLOCK_MAX_OCCUPIED];BLOCK_MAX_OCCUPIED],
-        occupied_index:&mut Vec<IVec2>,
-        idx_need_to_spotted:Vec<IVec2>){
-        
-    }
-
-    fn set_spotted_minos(&mut self, tetri_type : TetriminoTypeEnum,minos:&mut Vec<IVec2>){
+    /// 重新设置方块到顶端 / reset the block to the top
+    fn set_spotted_minos(tetri_type : TetriminoTypeEnum,minos:&mut Vec<IVec2>){
         minos.clear();
         match tetri_type {
             TetriminoTypeEnum::Stick => {

@@ -5,7 +5,7 @@ use ggez::{Context, GameResult, graphics};
 use ggez::glam::{IVec2, Vec2};
 use ggez::graphics::{Canvas, DrawParam, Mesh};
 use ggez::input::keyboard::KeyCode;
-use crate::constant;
+use crate::{constant, tools};
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::data::play_field::PlayField;
@@ -14,6 +14,7 @@ use crate::t_updatable::{Drawable, Tickable};
 use crate::runtime::data::playing_data::PlayingData;
 use crate::tools::logger::*;
 use crate::runtime::procedure::playing_state_enum::PlayingStateEnum;
+use crate::tools::logger::LogLevelEnum::Fatal;
 
 ///游玩状态
 /// playing state
@@ -38,9 +39,13 @@ pub  struct ProcedurePlaying{
     /// 当前的游玩状态 / current playing state
     _curr_playing_state : PlayingStateEnum,
     /// 表现要删除的游玩区域方块坐标集合 / playing area block coordinates to be deleted
-    _performing_coords : HashSet<String>,
+    _performing_coords : Vec<IVec2>,
     /// 表现效果持续时间 / duration of performance effect
     _performing_duration : f32,
+    /// 演出中消除的闪烁时间 / flash time during performance
+    _flash_time : f32,
+    /// 闪烁颜色 / flash color
+    _flash_color : ggez::graphics::Color,
 }
 
 impl Drawable for ProcedurePlaying {
@@ -52,9 +57,10 @@ impl Drawable for ProcedurePlaying {
                 
             },
             PlayingStateEnum::Performing => {
-                
+                self.draw_performing(ctx,&mut canvas);
             },
             PlayingStateEnum::Settlement => {
+                
             },
             _ => {}
         }
@@ -101,9 +107,17 @@ impl TState for ProcedurePlaying{
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
         self._delta_tick = 0.;
-        self.switch_playing_state(PlayingStateEnum::Falling);
         self._performing_coords.clear();
         self._performing_duration = 0.;
+        self._flash_time = 0.;
+        let gen_tetri_succ = self._play_field.generate_new_tetrimino();
+        if !gen_tetri_succ{
+            tools::logger::log("app.rs","generate new tetrimino failed.",Fatal);
+            panic!();
+        }
+        
+        self._play_field.reset();
+        self.switch_playing_state(PlayingStateEnum::Falling);
     }
 
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
@@ -111,9 +125,11 @@ impl TState for ProcedurePlaying{
         self._input_interval += delta_sec;
         let mut procedure_to_return : Option<ProcedureEnum> = None;
         
-        match self._curr_playing_state { 
+        match self._curr_playing_state {
+            
             PlayingStateEnum::Falling => {
                 //处理输入 / handle input
+                //没达到可输入时间间隔，表示还不能接受输入
                 if self._input_interval < constant::INPUT_HANDLE_INTERVAL || key_code.is_none() {
                     self._play_field.drop_once();
                     return Some(ProcedureEnum::Playing);
@@ -123,9 +139,9 @@ impl TState for ProcedurePlaying{
                 match actual_key_code{
                     //下落
                     KeyCode::Down => {
-                        let fall_succ_and_reached_top = self._play_field.try_drop_to_bottom();
+                        let fall_succ_and_reach_top = self._play_field.try_fall_to_bottom();
                         //到达顶部
-                        if fall_succ_and_reached_top.1 {
+                        if fall_succ_and_reach_top.1 {
                             let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
                             //到达顶部且没有消除方块，则结算
                             if cleared_line_cnt_and_coords.0 == 0 {
@@ -142,6 +158,7 @@ impl TState for ProcedurePlaying{
                             let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
                             //未到达顶部，没有消除，重新生成
                             if  cleared_line_cnt_and_coords.0 == 0 {
+                                //生成失败也结算
                                 if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
                                     self.settlement();
                                 }
@@ -149,7 +166,7 @@ impl TState for ProcedurePlaying{
                                     procedure_to_return = Some(ProcedureEnum::Playing);
                                 }
                             }
-                            //未到达顶部，有消除
+                            //未到达顶部，但有消除
                             else{
                                 self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
                                 self.switch_playing_state(PlayingStateEnum::Performing);
@@ -180,12 +197,20 @@ impl TState for ProcedurePlaying{
                     procedure_to_return = Some(ProcedureEnum::Playing);
                     self._performing_duration = 0.;
                     self._performing_coords.clear();
-                    self.switch_playing_state(PlayingStateEnum::Falling);
                     self._play_field.generate_new_tetrimino();
+                    self.switch_playing_state(PlayingStateEnum::Falling);
+                }
+                else{
+                    self._flash_time += delta_sec;
+                    if self._flash_time >= constant::PLAYFIELD_FLASHING_INTERVAL{
+                        self._flash_color.r += self._flash_color.r * -1.;
+                        self._flash_color.r += self._flash_color.g * -1.;
+                        self._flash_color.r += self._flash_color.b * -1.;
+                    }
                 }
             },//end match performing
             
-            //结算
+            //结算v
             PlayingStateEnum::Settlement =>{
                 //没有输入就不做处理
                 if key_code.is_none(){
@@ -196,6 +221,7 @@ impl TState for ProcedurePlaying{
                     procedure_to_return = Some(ProcedureEnum::Over);
                 }
             }//end match settlement
+            
             _ => {}
         }//end match
         
@@ -223,24 +249,31 @@ impl ProcedurePlaying {
     
     /// 添加区块坐标到要表现的坐标集合 / add block coordinates to the set of coordinates to be performed
     fn add_to_performing_coords(&mut self,performing_coords : Vec<IVec2>){
-        for coords in performing_coords.iter(){
-            self._performing_coords.insert(format!("{}{}",coords.x,coords.y));
-        }
+        
+        self._performing_coords = performing_coords.clone();
+        
+        // self._performing_coords.clear();
+        // for coords in performing_coords.iter(){
+        //     self._performing_coords.insert(format!("{}{}",coords.x,coords.y));
+        // }
     }
     
     /// 切换到指定的游玩状态 / switch to the specified playing state
     fn switch_playing_state(&mut self,state_to_switch:PlayingStateEnum){
+        
         match state_to_switch { 
             PlayingStateEnum::Falling => {
             },
             PlayingStateEnum::Performing => {
                 self._performing_duration = 0.;
+                self._flash_time = 0.;
                 self._performing_coords.clear();
             },
             PlayingStateEnum::Settlement => {
             },
             _ => {}
-        }
+        }//end match
+        
         self._curr_playing_state = state_to_switch;
     }
     
@@ -249,10 +282,44 @@ impl ProcedurePlaying {
         return  Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
     }
     
+    
+    fn draw_performing(&mut self,ctx:&mut Context,canvas:&mut Canvas){
+        
+        if self._performing_coords.len() == 0{
+            return;
+        }
+        
+        //绘制表现效果
+        for coords in self._performing_coords.iter(){
+            let mesh = Mesh::new_rectangle
+                (
+                    ctx, 
+                    graphics::DrawMode::fill(), 
+                    graphics::Rect::new(
+                        (coords.x as f32) + constant::BLOCK_INIT_START_COORD.0 + constant::BLOCK_COORD_SPACING as f32,
+                        (coords.y as f32) + constant::BLOCK_INIT_START_COORD.1 + constant::BLOCK_COORD_SPACING as f32,
+                        constant::BLOCK_SIZE as f32,
+                        constant::BLOCK_SIZE as f32
+                    ),
+                    self._flash_color
+                );
+            
+            if let Ok(mesh) = mesh{
+                canvas.draw(&mesh, DrawParam::default());
+            }
+        }//end for
+    }
+    
     /// 绘制边框 / draw border
     fn draw_border(&mut self,ctx:&mut Context,canvas:&mut Canvas){
-        let left_border = Mesh::new_line(ctx, &constant::BORDER_POSITIONS, 2.0, ggez::graphics::Color::WHITE);
-        if let Ok(left_border) = left_border{
+        let borders = Mesh::new_line
+            (
+                ctx, 
+                &constant::BORDER_POSITIONS,
+                2.0, ggez::graphics::Color::WHITE
+            );
+        
+        if let Ok(left_border) = borders{
             canvas.draw(&left_border, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
         }
     }
@@ -270,18 +337,6 @@ impl ProcedurePlaying {
                 else{
                     
                 }
-                // let cell = &block_area[i][j];
-                // if cell.is_occupied(){
-                //     let mesh_rect = Mesh::new_rectangle(
-                //         ctx,
-                //         ggez::graphics::DrawMode::fill(),
-                //         ggez::graphics::Rect::new(0.0, 0.0, constant::BLOCK_SIZE as f32, constant::BLOCK_SIZE as f32),
-                //         ggez::graphics::Color::WHITE
-                //     );
-                //     if let Ok(mesh_rect) = mesh_rect{
-                //         canvas.draw(&mesh_rect, DrawParam::default().dest(Vec2::new(cell.get_world_position().x, cell.get_world_position().y)));
-                //     }
-                // }
             }
         }
     }
@@ -305,8 +360,10 @@ impl ProcedurePlaying {
             _input_interval : 0.,
             _delta_tick : 0.,
             _curr_playing_state : PlayingStateEnum::Start,
-            _performing_coords : HashSet::new(),
-            _performing_duration : 0., 
+            _performing_coords : Vec::new(),
+            _performing_duration : 0.,
+            _flash_time : 0.,
+            _flash_color : ggez::graphics::Color::from_rgb(1,1,1),
         };
     }
 }

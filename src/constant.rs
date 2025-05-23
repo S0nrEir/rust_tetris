@@ -38,15 +38,16 @@ pub const PROC_MAIN_UI_ITEM_TEXT_SCALE : f32 = 60.0;
 
 //------------------------------color------------------------------
 pub const COLOR_RGB_BLACK : [f32;3] = [0.0 ,0.0 ,0.0];
+pub const COLOR_RGB_WHITE : [f32;3] = [1.0 ,1.0 ,1.0];
 pub const COLOR_RGBA_BLACK_1 : [f32;4] = [0.0 ,0.0 ,0.0, 1.0];
 pub const COLOR_ALPHA_1 : [f32;1] = [1.0];
 pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
 
 //------------------------------block------------------------------
-/// 列数
-pub const BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT : usize = 10;
-/// 行数
-pub const BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT : usize = 20;
+/// 游玩区域行数 / play field rows
+pub const PLAY_FIELD_RAWS : usize = 20;
+/// 游玩区域列数 / play field cols
+pub const PLAY_FIELD_COLS : usize = 10;
 /// 单个方块的尺寸 / size of a single block
 pub const BLOCK_SIZE : u8 = 10;
 /// 方块间的坐标间隔 / spacing between blocks
@@ -68,6 +69,8 @@ pub const BORDER_POSITIONS : [Vec2;5] = [
 
 /// 演出效果时间 / Performing effect time 
 pub const PLAYFIELD_PERFORMING_INTERVAL : f32 = 3.;
+
+pub const PLAYFIELD_FLASHING_INTERVAL : f32 = 1.;
 
 /// 方块颜色生成序列
 pub const BLOCK_COLOR_GEN_SEQUENCE : [TetriminoColorEnum;7] = [
