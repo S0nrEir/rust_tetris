@@ -98,7 +98,7 @@ impl TState for ProcedureTestDrawBlock{
 impl Drawable for ProcedureTestDrawBlock {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
 
-        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_R0G0B0A1));
         //canvas坐标起始从左上角开始
         // self.draw_text(&mut canvas);
         

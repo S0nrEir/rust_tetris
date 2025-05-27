@@ -1,8 +1,8 @@
 ﻿use std::any::Any;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use colored::Color;
 use ggez::{Context, GameResult, graphics};
-use ggez::glam::{IVec2, Vec2};
+use ggez::glam::{vec2, IVec2, Vec2};
 use ggez::graphics::{Canvas, DrawParam, Mesh};
 use ggez::input::keyboard::KeyCode;
 use crate::{constant, tools};
@@ -39,13 +39,16 @@ pub  struct ProcedurePlaying{
     /// 当前的游玩状态 / current playing state
     _curr_playing_state : PlayingStateEnum,
     /// 表现要删除的游玩区域方块坐标集合 / playing area block coordinates to be deleted
-    _performing_coords : Vec<IVec2>,
+    _performing_coords : HashSet<(i32,i32)>,
     /// 表现效果持续时间 / duration of performance effect
     _performing_duration : f32,
     /// 演出中消除的闪烁时间 / flash time during performance
     _flash_time : f32,
     /// 闪烁颜色 / flash color
     _flash_color : ggez::graphics::Color,
+    
+    /// 边框屏幕坐标位置 / border screen positions
+    _border_positions : [Vec2;5],
 }
 
 impl Drawable for ProcedurePlaying {
@@ -74,7 +77,7 @@ impl Drawable for ProcedurePlaying {
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
         //每次tick向下落一次
-        let fall_succ_and_reached_top = self._play_field.drop_once();
+        let fall_succ_and_reached_top = self._play_field.fall_one();
         //顶部存在方块，直接结束游戏
         if fall_succ_and_reached_top.1 {
             self.settlement();
@@ -131,14 +134,15 @@ impl TState for ProcedurePlaying{
                 //处理输入 / handle input
                 //没达到可输入时间间隔，表示还不能接受输入
                 if self._input_interval < constant::INPUT_HANDLE_INTERVAL || key_code.is_none() {
-                    self._play_field.drop_once();
-                    return Some(ProcedureEnum::Playing);
+                    // self._play_field.fall_one();
+                    // return Some(ProcedureEnum::Playing);
+                    procedure_to_return = Some(ProcedureEnum::Playing);
                 }
 
                 let actual_key_code = key_code.unwrap();
                 match actual_key_code{
                     //下落
-                    KeyCode::Down => {
+                    KeyCode::Down | KeyCode::S => {
                         let fall_succ_and_reach_top = self._play_field.try_fall_to_bottom();
                         //到达顶部
                         if fall_succ_and_reach_top.1 {
@@ -175,14 +179,18 @@ impl TState for ProcedurePlaying{
 
                     },//end match down
                     //左右移动
-                    KeyCode::Left | KeyCode::Right => {
-                        //移动成功，更新grid
-                        self._play_field.try_horizontal_move_tetrimino(actual_key_code == KeyCode::Right);
+                    KeyCode::Left | KeyCode::Right | KeyCode::A | KeyCode::D => {
+                        let offset = if actual_key_code == KeyCode::Right || actual_key_code == KeyCode::D {1} else {-1};
+                        self._play_field.try_horizontal_move_tetrimino(offset);
                     },
-
-                    KeyCode::Up => {
+                    //旋转
+                    KeyCode::Up | KeyCode::W => {
                         //旋转成功，更新grid
                         self._play_field.try_rotate_tetrimino(true);
+                    }
+                    //退出
+                    KeyCode::Escape => {
+                        
                     }
                     _ => {}
                 }
@@ -210,7 +218,7 @@ impl TState for ProcedurePlaying{
                 }
             },//end match performing
             
-            //结算v
+            //结算
             PlayingStateEnum::Settlement =>{
                 //没有输入就不做处理
                 if key_code.is_none(){
@@ -250,8 +258,11 @@ impl ProcedurePlaying {
     /// 添加区块坐标到要表现的坐标集合 / add block coordinates to the set of coordinates to be performed
     fn add_to_performing_coords(&mut self,performing_coords : Vec<IVec2>){
         
-        self._performing_coords = performing_coords.clone();
+        for coords in performing_coords.iter(){
+            self._performing_coords.insert((coords.x, coords.y));
+        }
         
+        // self._performing_coords = performing_coords.clone();
         // self._performing_coords.clear();
         // for coords in performing_coords.iter(){
         //     self._performing_coords.insert(format!("{}{}",coords.x,coords.y));
@@ -279,7 +290,7 @@ impl ProcedurePlaying {
     
     /// 绘制背景 / draw background
     fn draw_background(&mut self,ctx:&mut Context) -> Canvas{
-        return  Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
+        return  Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_R0G0B0A1));
     }
     
     
@@ -296,8 +307,8 @@ impl ProcedurePlaying {
                     ctx, 
                     graphics::DrawMode::fill(), 
                     graphics::Rect::new(
-                        (coords.x as f32) + constant::BLOCK_INIT_START_COORD.0 + constant::BLOCK_COORD_SPACING as f32,
-                        (coords.y as f32) + constant::BLOCK_INIT_START_COORD.1 + constant::BLOCK_COORD_SPACING as f32,
+                        (coords.0 as f32) + constant::BLOCK_INIT_START_COORD.0 + constant::BLOCK_COORD_SPACING as f32,
+                        (coords.1 as f32) + constant::BLOCK_INIT_START_COORD.1 + constant::BLOCK_COORD_SPACING as f32,
                         constant::BLOCK_SIZE as f32,
                         constant::BLOCK_SIZE as f32
                     ),
@@ -315,12 +326,12 @@ impl ProcedurePlaying {
         let borders = Mesh::new_line
             (
                 ctx, 
-                &constant::BORDER_POSITIONS,
+                &self._border_positions,
                 2.0, ggez::graphics::Color::WHITE
             );
         
-        if let Ok(left_border) = borders{
-            canvas.draw(&left_border, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
+        if let Ok(borders) = borders{
+            canvas.draw(&borders, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
         }
     }
     
@@ -329,20 +340,36 @@ impl ProcedurePlaying {
         let block_area = self._play_field.get_block_area();
         for i in 0..block_area.len(){
             for j in 0..block_area[i].len(){
-                //绘制处于表现效果的块
-                if self._performing_coords.len() > 0 && self._performing_coords.contains(&block_area[i][j].coord_as_string()){
-                    
+                //绘制所有方块
+                let block = block_area[i][j];
+                let coord = block.get_coord();
+                
+                if self._performing_coords.contains(&(coord.x, coord.y)){
+                    continue;
                 }
-                //绘制其他
-                else{
-                    
+                
+                let mesh = Mesh::new_rectangle
+                    (
+                        ctx, 
+                        graphics::DrawMode::fill(), 
+                        graphics::Rect::new(
+                            (coord.x as f32) * constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.0 + constant::BLOCK_COORD_SPACING as f32, 
+                            (coord.y as f32) * constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.1 + constant::BLOCK_COORD_SPACING as f32,
+                            constant::BLOCK_SIZE as f32,
+                            constant::BLOCK_SIZE as f32
+                        ),
+                        block.color().clone()
+                    );
+                
+                if let Ok(mesh) = mesh{
+                    canvas.draw(&mesh, DrawParam::default());
                 }
             }
         }
     }
     
     /// 绘制游玩信息 / draw playing info
-    fn draw_playing_info(&self,ctx:&mut Context,canvas:&mut Canvas){
+    fn draw_playing_info(&self,ctx:&mut Context,canvas:& mut Canvas){
         
     }
     
@@ -351,8 +378,10 @@ impl ProcedurePlaying {
         self._curr_playing_state = PlayingStateEnum::Settlement;
     }
     
-    
     pub fn new() -> Self{
+        let min_position = constant::BORDER_MIN_POSITION;
+        let max_position = constant::BORDER_MAX_POSITION;
+        
         return ProcedurePlaying{
             _play_field: PlayField::new(),
             _player_data:PlayingData::new(),
@@ -360,10 +389,15 @@ impl ProcedurePlaying {
             _input_interval : 0.,
             _delta_tick : 0.,
             _curr_playing_state : PlayingStateEnum::Start,
-            _performing_coords : Vec::new(),
+            _performing_coords : HashSet::new(),
             _performing_duration : 0.,
             _flash_time : 0.,
             _flash_color : ggez::graphics::Color::from_rgb(1,1,1),
+            _border_positions : [min_position,
+                                 Vec2::new(max_position.x, min_position.y),
+                                 max_position,
+                                 Vec2::new(min_position.x, max_position.y),
+                                 min_position]
         };
     }
 }

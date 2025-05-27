@@ -66,7 +66,9 @@ impl Tetrimino{
 
     /// 旋转当前方块 / rotate the current block
     /// #Arguments
-    /// * direction - 旋转方向方块，true表示顺时针，false表示逆时针 / rotation direction of the block, true means clockwise, false means counterclockwise
+    /// * clock_wise - 是否顺时针旋转 / whether to rotate clockwise
+    /// #Return
+    /// * 返回是否旋转成功 / return whether the rotation was successful
     pub fn rotate(&mut self, clock_wise : bool) -> bool
     {
         let old_angle = self._curr_angle;

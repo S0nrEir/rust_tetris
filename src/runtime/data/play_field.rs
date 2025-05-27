@@ -67,13 +67,13 @@ impl PlayField {
     /// 将当前方块下降一格 / Drop the current block by one grid
     /// #Return
     /// * 返回值1表示是否下降成功，返回值2表示是否到达顶部 / Return value 1 indicates whether the drop is successful, and return value 2 indicates whether the top is reached
-    pub fn drop_once(&mut self) -> (bool,bool){
+    pub fn fall_one(&mut self) -> (bool,bool){
         match self._curr_terimino {
             
             Some(ref mut curr_tetrimino) => {
                 let tetri_color = curr_tetrimino.color();
                 let old_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
-                curr_tetrimino.update_coord(IVec2::new(1,0));
+                curr_tetrimino.update_coord(IVec2::new(0,1));
                 // let new_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
                 //检查下落后是否有碰撞
                 if Self::detect_tetrimino_collision(&self._block_arr, curr_tetrimino.block_actual_coord()) {
@@ -137,49 +137,80 @@ impl PlayField {
     /// * `move_right` - 是否向右移动，如果为false则向左移动 / whether to move to the right, if false, move to the left
     /// #Return
     /// * 是否移动成功 / whether the move is successful
-    pub fn try_horizontal_move_tetrimino(&mut self,move_right:bool) -> bool{
-        match self._curr_terimino {
-            Some(ref mut curr_terimino) => {
-                let tetri_coords = curr_terimino.get_coord();
-                let offset = if move_right {1} else {-1};
-                let new_x = tetri_coords.x + offset;
-
-                if new_x < 0 || new_x as usize >= constant::PLAY_FIELD_COLS {
-                    log("play_field.rs",&format!("try_horizontal_move_tetrimino() ---> move out of range,curr tetrimino x coord : {},y coord : {}",tetri_coords.x,tetri_coords.y),LogLevelEnum::Warning);
-                    return false;
-                }
-
-                match self._curr_terimino { 
-
-                    Some(ref mut curr_tetrimino) => {
-                        let tetri_color = curr_tetrimino.color();
-                        let old_actual_coords = curr_tetrimino.block_actual_coord().clone();
-                        curr_tetrimino.update_coord(IVec2::new(offset,0));
-                        let new_actual_coords = curr_tetrimino.block_actual_coord();
-                        for coords in new_actual_coords.iter() {
-                            //有碰撞则视为失败
-                            if self._block_arr[coords.x as usize][coords.y as usize].is_occupied() {
-                                curr_tetrimino.update_coord(IVec2::new(-offset,0));
-                                return false;
-                            }
-                        }
-                        Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
-                        Self::update_block_area(&new_actual_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
-                        return true;
-                    },
-
-                    None => {
+    pub fn try_horizontal_move_tetrimino(&mut self,offset:i32) -> bool{
+        
+        if offset != 1 && offset != -1 {
+            log("play_field.rs","try_horizontal_move_tetrimino() ---> offset is not 1 or -1",LogLevelEnum::Error);
+            return false;
+        }
+        
+        match self._curr_terimino{
+            Some(ref mut curr_tetrimino) => {
+                let mut new_coords = curr_tetrimino.block_actual_coord().clone();
+                for i in 0..new_coords.len() {
+                    new_coords[i].x += offset;
+                    if new_coords[i].x < 0 || new_coords[i].x as usize >= constant::PLAY_FIELD_COLS {
+                        log("play_field.rs",&format!("try_horizontal_move_tetrimino() ---> move out of range,curr tetrimino x coord : {},y coord : {}",new_coords[i].x,new_coords[i].y),LogLevelEnum::Info);
                         return false;
                     }
-
                 }
-            },
-
+                
+                let move_succ = Self::detect_tetrimino_collision(&self._block_arr, &new_coords);
+                if(move_succ){
+                    Self::update_block_area(curr_tetrimino.block_actual_coord(),0, &mut self._block_arr,PlayFieldColorEnum::Black);
+                    Self::update_block_area(&new_coords,1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(curr_tetrimino.color()));
+                    curr_tetrimino.update_coord(IVec2::new(offset,0));
+                }
+                return move_succ;
+            }
             None => {
                 log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
                 return false;
             }
-        }//end match
+        }
+        
+        // match self._curr_terimino {
+        //     Some(ref mut curr_terimino) => {
+        //         let tetri_coords = curr_terimino.block_actual_coord();
+        //         let offset = if move_right {1} else {-1};
+        //         let new_x = tetri_coords.x + offset;
+        // 
+        //         if new_x < 0 || new_x as usize >= constant::PLAY_FIELD_COLS {
+        //             log("play_field.rs",&format!("try_horizontal_move_tetrimino() ---> move out of range,curr tetrimino x coord : {},y coord : {}",tetri_coords.x,tetri_coords.y),LogLevelEnum::Warning);
+        //             return false;
+        //         }
+        // 
+        //         match self._curr_terimino { 
+        // 
+        //             Some(ref mut curr_tetrimino) => {
+        //                 let tetri_color = curr_tetrimino.color();
+        //                 let old_actual_coords = curr_tetrimino.block_actual_coord().clone();
+        //                 curr_tetrimino.update_coord(IVec2::new(offset,0));
+        //                 let new_actual_coords = curr_tetrimino.block_actual_coord();
+        //                 for coords in new_actual_coords.iter() {
+        //                     //有碰撞则视为失败
+        //                     if self._block_arr[coords.x as usize][coords.y as usize].is_occupied() {
+        //                         curr_tetrimino.update_coord(IVec2::new(-offset,0));
+        //                         return false;
+        //                     }
+        //                 }
+        //                 Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+        //                 Self::update_block_area(&new_actual_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
+        //                 return true;
+        //             },
+        // 
+        //             None => {
+        //                 return false;
+        //             }
+        // 
+        //         }
+        //     },
+        // 
+        //     None => {
+        //         log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
+        //         return false;
+        //     }
+        // }//end match
     }
 
     /// 尝试旋转当前方块，如果旋转方块成功且无占位不冲突，则将更新grid area占位情况和对应的tetri / Try to rotate the current block, if the rotation block is successful and there is no conflict with the occupancy, the occupancy situation of the grid area and the corresponding tetri will be updated
@@ -187,14 +218,13 @@ impl PlayField {
     /// * `turn_right` - 是否向右旋转，如果为false则向左旋转 / whether to rotate to the right, if false, rotate to the left
     /// #Return
     /// * 是否旋转成功 / whether the rotation is successful
-    pub fn try_rotate_tetrimino(&mut self,turn_right:bool) -> bool{
+    pub fn try_rotate_tetrimino(&mut self,close_wise:bool) -> bool{
         match self._curr_terimino {
             Some(ref mut curr_terimino) => {
                 //let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
-                let old_tetrimino = curr_terimino.clone();
-                let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
+                let mut old_tetrimino = curr_terimino.clone();
                 //turn right
-                if turn_right {
+                if close_wise {
                     curr_terimino.rotate(true);
                 }
                 //turn left
@@ -203,16 +233,15 @@ impl PlayField {
                 }
                 
                 let new_actual_block_coords = curr_terimino.block_actual_coord();
-                for coord in new_actual_block_coords.iter() {
-                    //检查curr tetri更新后，占位坐标点在grid坐标系的位置中，是否已经被占用
-                    if self._block_arr[coord.x as usize][coord.y as usize].is_occupied() {
-                        *curr_terimino = old_tetrimino;
-                        return false;
-                    }
-                }//end for
+                if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_block_coords){
+                    //如果有碰撞，则将curr tetri还原为old tetri
+                    *curr_terimino = old_tetrimino;
+                    return false;
+                }
                 
-                Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+                Self::update_block_area(&old_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
                 Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(old_tetrimino.color()));
+                return true;
             },
             None => {
                 log("play_field.rs","try_rotate_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
@@ -337,10 +366,10 @@ impl PlayField {
                 block.set_occupied(0);
                 y += 1.;
                 //y offset
-                init_coord.1 = (x + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING) as f32;
+                init_coord.1 = (x + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
             }
             x += 1.;
-            init_coord.0 = (y + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING) as f32;
+            init_coord.0 = (y + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
         }
     }
     

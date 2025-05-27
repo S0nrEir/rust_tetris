@@ -74,7 +74,7 @@ impl ProcedureMainUI {
 
 impl Drawable for ProcedureMainUI {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
-        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_R0G0B0A1));
         //draw title
         self.draw_title(&mut canvas);
         canvas.finish(ctx)?;
