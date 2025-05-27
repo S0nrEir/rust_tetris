@@ -106,6 +106,7 @@ impl Tickable for ProcedurePlaying {
 impl TState for ProcedurePlaying{
     fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
+        self._play_field.reset();
         self._play_field.init_field_data();
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
@@ -119,7 +120,6 @@ impl TState for ProcedurePlaying{
             panic!();
         }
         
-        self._play_field.reset();
         self.switch_playing_state(PlayingStateEnum::Falling);
     }
 
