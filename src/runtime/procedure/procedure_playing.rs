@@ -1,8 +1,8 @@
 ﻿use std::any::Any;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashSet};
 use colored::Color;
 use ggez::{Context, GameResult, graphics};
-use ggez::glam::{vec2, IVec2, Vec2};
+use ggez::glam::{IVec2, Vec2};
 use ggez::graphics::{Canvas, DrawParam, Mesh};
 use ggez::input::keyboard::KeyCode;
 use crate::{constant, tools};
@@ -45,7 +45,7 @@ pub  struct ProcedurePlaying{
     /// 演出中消除的闪烁时间 / flash time during performance
     _flash_time : f32,
     /// 闪烁颜色 / flash color
-    _flash_color : ggez::graphics::Color,
+    _flash_color : graphics::Color,
     
     /// 边框屏幕坐标位置 / border screen positions
     _border_positions : [Vec2;5],
@@ -131,71 +131,67 @@ impl TState for ProcedurePlaying{
         match self._curr_playing_state {
             
             PlayingStateEnum::Falling => {
-                //处理输入 / handle input
-                //没达到可输入时间间隔，表示还不能接受输入
-                if self._input_interval < constant::INPUT_HANDLE_INTERVAL || key_code.is_none() {
-                    // self._play_field.fall_one();
-                    // return Some(ProcedureEnum::Playing);
-                    procedure_to_return = Some(ProcedureEnum::Playing);
-                }
-
-                let actual_key_code = key_code.unwrap();
-                match actual_key_code{
-                    //下落
-                    KeyCode::Down | KeyCode::S => {
-                        let fall_succ_and_reach_top = self._play_field.try_fall_to_bottom();
-                        //到达顶部
-                        if fall_succ_and_reach_top.1 {
-                            let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
-                            //到达顶部且没有消除方块，则结算
-                            if cleared_line_cnt_and_coords.0 == 0 {
-                                self.settlement();
-                            }
-                            //到达顶部有消除，进行表现效果
-                            else{
-                                self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
-                                self.switch_playing_state(PlayingStateEnum::Performing);
-                            }
-                        }
-                        //未到达顶部
-                        else{
-                            let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
-                            //未到达顶部，没有消除，重新生成
-                            if  cleared_line_cnt_and_coords.0 == 0 {
-                                //生成失败也结算
-                                if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
+                
+                if self._input_interval >= constant::INPUT_HANDLE_INTERVAL && !key_code.is_none(){
+                    let actual_key_code = key_code.unwrap();
+                    match actual_key_code{
+                        //下落
+                        KeyCode::Down | KeyCode::S => {
+                            let fall_succ_and_reach_top = self._play_field.try_fall_to_bottom();
+                            //到达顶部
+                            if fall_succ_and_reach_top.1 {
+                                let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+                                //到达顶部且没有消除方块，则结算
+                                if cleared_line_cnt_and_coords.0 == 0 {
                                     self.settlement();
                                 }
+                                //到达顶部有消除，进行表现效果
                                 else{
-                                    procedure_to_return = Some(ProcedureEnum::Playing);
+                                    self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
+                                    self.switch_playing_state(PlayingStateEnum::Performing);
                                 }
                             }
-                            //未到达顶部，但有消除
+                            //未到达顶部
                             else{
-                                self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
-                                self.switch_playing_state(PlayingStateEnum::Performing);
+                                let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+                                //未到达顶部，没有消除，重新生成
+                                if  cleared_line_cnt_and_coords.0 == 0 {
+                                    //生成失败也结算
+                                    if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
+                                        self.settlement();
+                                    }
+                                    else{
+                                        // procedure_to_return = Some(ProcedureEnum::Playing);
+                                    }
+                                }
+                                //未到达顶部，但有消除
+                                else{
+                                    self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
+                                    self.switch_playing_state(PlayingStateEnum::Performing);
+                                }
                             }
+                        },//end match down
+                        //左右移动
+                        KeyCode::Left | KeyCode::Right | KeyCode::A | KeyCode::D => {
+                            let offset = if actual_key_code == KeyCode::Right || actual_key_code == KeyCode::D {1} else {-1};
+                            self._play_field.try_horizontal_move_tetrimino(offset);
+                        },
+                        //旋转
+                        KeyCode::Up | KeyCode::W => {
+                            //旋转成功，更新grid
+                            self._play_field.try_rotate_tetrimino(true);
                         }
+                        //退出
+                        KeyCode::Escape => {
 
-                    },//end match down
-                    //左右移动
-                    KeyCode::Left | KeyCode::Right | KeyCode::A | KeyCode::D => {
-                        let offset = if actual_key_code == KeyCode::Right || actual_key_code == KeyCode::D {1} else {-1};
-                        self._play_field.try_horizontal_move_tetrimino(offset);
-                    },
-                    //旋转
-                    KeyCode::Up | KeyCode::W => {
-                        //旋转成功，更新grid
-                        self._play_field.try_rotate_tetrimino(true);
+                        }
+                        _ => {}
                     }
-                    //退出
-                    KeyCode::Escape => {
-                        
-                    }
-                    _ => {}
+                    
+                    procedure_to_return = Some(ProcedureEnum::Playing);
+                    self._input_interval = 0.0;
+                    self._curr_input = None;
                 }
-                self._input_interval = 0.0;
-                self._curr_input = None;
             },//end match falling
             
             //处理表现
@@ -381,6 +377,8 @@ impl ProcedurePlaying {
     pub fn new() -> Self{
         let min_position = constant::BORDER_MIN_POSITION;
         let max_position = constant::BORDER_MAX_POSITION;
+        
+        log("procedure_playing.rs","procedure_playing.rs ---> create ProcedurePlaying",LogLevelEnum::Info);
         
         return ProcedurePlaying{
             _play_field: PlayField::new(),

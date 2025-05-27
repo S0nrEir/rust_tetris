@@ -47,7 +47,7 @@ pub mod logger {
         println!("{} : {}",format!("{:?}",sender).bright_red(), msg.bright_red());
     }
     fn log_fatal<T:Debug>(sender:T,msg:&str){
-        panic!("{} : {}",format!("{:?}",sender).red(), msg.red());
+        println!("{} : {}",format!("{:?}",sender).red(), msg.red());
     }
     
     #[derive(IntoPrimitive)]

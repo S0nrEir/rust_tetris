@@ -392,6 +392,7 @@ impl PlayField {
 impl PlayField {
     ///新建 / new
     pub fn new() -> Self{
+        log("play_field.rs","PlayField::new() ---> new play field created",LogLevelEnum::Info);
         return PlayField {
             _block_arr : PlayField::gen_block_arr(),
             _curr_terimino : None
@@ -400,8 +401,8 @@ impl PlayField {
     
     fn gen_block_arr() -> [[TetriGridCell;constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS] {
         let mut block_arr = [[TetriGridCell::new(Vec2::new(0.0,0.0),IVec2::ZERO);constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS];
-        for i in 0..constant::PLAY_FIELD_COLS {
-            for j in 0..constant::PLAY_FIELD_RAWS {
+        for i in 0..constant::PLAY_FIELD_RAWS {
+            for j in 0..constant::PLAY_FIELD_COLS {
                 block_arr[i][j] = TetriGridCell::new(Vec2::new(0.0,0.0),IVec2::new(i as i32,j as i32));
                 block_arr[i][j].set_occupied(0);
             }

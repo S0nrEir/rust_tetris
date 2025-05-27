@@ -12,7 +12,7 @@ use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBloc
 use crate::t_state::TState;
 use crate::t_updatable::{Updatable};
 use crate::tools::logger::{log, LogLevelEnum};
-use crate::tools::logger::LogLevelEnum::Fatal;
+use crate::tools::logger::LogLevelEnum::{Fatal, Warning};
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
@@ -44,7 +44,7 @@ impl App {
                 if let Ok(mut app) = App::new(&mut context,procedure_list){
                     app._procedure_component.switch(ProcedureEnum::TestDrawBlock,Box::new(ProcedureTestDrawBlockParam::new()),None);
                     event::run(context, event_loop,app);
-                }
+                 }
                 return;
             }
             
@@ -121,8 +121,8 @@ impl App {
             }
         }
         else{
-            log("app.rs","main_update() ---> return a none procedure enum!",Fatal);
-            panic!();
+            log("app.rs","current procedure is none",Warning);
+            //panic!();
         }
         
         #[cfg(feature = "debug_log")]{
