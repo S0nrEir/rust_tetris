@@ -400,10 +400,15 @@ impl PlayField {
     }
     
     fn gen_block_arr() -> [[TetriGridCell;constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS] {
+        //#todo这里数组在声明的时候给了个初值，后面又做了一次初始化，看看怎么把这两步合并一下
         let mut block_arr = [[TetriGridCell::new(Vec2::new(0.0,0.0),IVec2::ZERO);constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS];
         for i in 0..constant::PLAY_FIELD_RAWS {
             for j in 0..constant::PLAY_FIELD_COLS {
-                block_arr[i][j] = TetriGridCell::new(Vec2::new(0.0,0.0),IVec2::new(i as i32,j as i32));
+                let x = constant::BLOCK_INIT_START_COORD.0 + i as f32 * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
+                let y = constant::BLOCK_INIT_START_COORD.1 + j as f32 * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
+                let x_coord = i as i32;
+                let y_coord = j as i32;
+                block_arr[i][j] = TetriGridCell::new(Vec2::new(x,y),IVec2::new(i as i32,j as i32));
                 block_arr[i][j].set_occupied(0);
             }
         }
