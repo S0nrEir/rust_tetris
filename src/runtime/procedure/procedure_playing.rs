@@ -69,7 +69,8 @@ impl Drawable for ProcedurePlaying {
         }
         
         self.draw_border(ctx, &mut canvas);
-        self.draw_play_field(ctx,&mut canvas);
+        // self.draw_play_field(ctx,&mut canvas);
+        canvas.finish(ctx)?;
         return Ok(());
     }
 }
@@ -325,6 +326,7 @@ impl ProcedurePlaying {
     
     /// 绘制边框 / draw border
     fn draw_border(&mut self,ctx:&mut Context,canvas:&mut Canvas){
+
         let borders = Mesh::new_line
             (
                 ctx, 
@@ -333,7 +335,7 @@ impl ProcedurePlaying {
             );
         
         if let Ok(borders) = borders{
-            canvas.draw(&borders, DrawParam::default().dest(Vec2::new(0.0, 0.0)));
+            canvas.draw(&borders, DrawParam::default());
         }
     }
     

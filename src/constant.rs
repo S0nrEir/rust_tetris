@@ -38,7 +38,8 @@ pub const PROC_MAIN_UI_ITEM_TEXT_SCALE : f32 = 60.0;
 
 //------------------------------color------------------------------
 pub const COLOR_RGB_BLACK : [f32;3] = [0.0 ,0.0 ,0.0];
-pub const COLOR_RGB_WHITE : [f32;3] = [1.0 ,1.0 ,1.0];
+pub const COLOR_R1G1B1 : [f32;3] = [1.0 ,1.0 ,1.0];
+pub const COLOR_R1G1B1A1 : [f32;4] = [1.0 ,1.0 ,1.0,1.0];
 pub const COLOR_R0G0B0A1 : [f32;4] = [0.0 ,0.0 ,0.0, 1.0];
 pub const COLOR_ALPHA_1 : [f32;1] = [1.0];
 pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
