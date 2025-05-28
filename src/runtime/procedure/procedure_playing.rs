@@ -187,11 +187,11 @@ impl TState for ProcedurePlaying{
                         }
                         _ => {}
                     }
-                    
-                    procedure_to_return = Some(ProcedureEnum::Playing);
                     self._input_interval = 0.0;
                     self._curr_input = None;
                 }
+
+                procedure_to_return = Some(ProcedureEnum::Playing);
             },//end match falling
             
             //处理表现

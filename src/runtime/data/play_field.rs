@@ -87,7 +87,7 @@ impl PlayField {
                     //下一格无碰撞，当前位置标记位无占位，下一格位置标记位有占位
                     Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
                     Self::update_block_area(curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
-                    return (false,true);
+                    return (true,false);
                 }
                 
             }
