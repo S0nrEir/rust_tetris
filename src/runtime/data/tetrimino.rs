@@ -198,12 +198,28 @@ impl Tetrimino{
     /// 更新方块在grid中的坐标位置 / update the coordinate position of the block in the grid
     /// #Arguments
     /// * offset - 偏移量 / offset
+    /// #Return
+    /// * 返回是否更新成功 / return whether the update was successful
     #[inline]
-    pub fn update_coord(&mut self,offset:IVec2){
+    pub fn update_coord(&mut self,offset:IVec2) -> bool{
+        for i in 0..self._minos.len(){
+            let new_x = self._minos[i].x + offset.x;
+            let new_y = self._minos[i].y + offset.y;
+            if new_x < 0 || new_x >= constant::PLAY_FIELD_RAWS as i32 || new_y < 0 || new_y >= constant::PLAY_FIELD_COLS as i32 {
+                // log(
+                //     "Tetrimino.rs",
+                //     &format!("update_coord() ---> out of range , x : {} , y : {} , offset x : {} , offset y : {}",self._minos[i].x,self._minos[i].y,offset.x,offset.y)
+                //     ,LogLevelEnum::Warning);
+                return false;
+            }
+        }
+
         for i in 0..self._minos.len(){
             self._minos[i].x += offset.x;
             self._minos[i].y += offset.y;
         }
+
+        return true;
     }
     
     /// 获取方块颜色 / get the block color

@@ -87,17 +87,22 @@ impl Tickable for ProcedurePlaying {
         if fall_succ_and_reached_top.0 {
             //下落成功检查消除
             let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
-            //没有消除，重新生成
-            if cleared_line_cnt_and_coords.0 == 0 {
-                //下落放置成功，重新生成方块，但如果生成失败要检查下是否已经到了顶部
-                if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
-                    self.settlement();
-                }
-            }
-            //有消除
-            else{
+            //有消除，重新生成
+            if cleared_line_cnt_and_coords.0 != 0 {
                 self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
                 self.switch_playing_state(PlayingStateEnum::Performing);
+                // if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
+                //     self.settlement();
+                // }
+            }
+            //没消除，生成新的
+            else{
+                let gen_new_succ = self._play_field.generate_new_tetrimino();
+                let is_top_occupied = self._play_field.is_top_occupied();
+                if !gen_new_succ && is_top_occupied {
+                    //如果生成失败且顶部被占用，则结算
+                    self.settlement();
+                }
             }
         }
     }
@@ -107,7 +112,7 @@ impl TState for ProcedurePlaying{
     fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
         self._play_field.reset();
-        self._play_field.init_field_data();
+        // self._play_field.init_field_data();
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
         self._delta_tick = 0.;
@@ -232,8 +237,9 @@ impl TState for ProcedurePlaying{
         // main tick
         self._delta_tick += delta_sec;
         if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC {
-            self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
+            log("procedure_playing.rs", &format!("on_tick"), LogLevelEnum::Info);
             self._delta_tick = 0.;
+            self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
         }
         
         self._curr_input = None;

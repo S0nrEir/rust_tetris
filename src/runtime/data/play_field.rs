@@ -72,20 +72,17 @@ impl PlayField {
             
             Some(ref mut curr_tetrimino) => {
                 let tetri_color = curr_tetrimino.color();
-                let old_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
-                curr_tetrimino.update_coord(IVec2::new(0,1));
-                // let new_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
-                //检查下落后是否有碰撞
+                // let old_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
+                Self::update_block_area(curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+
+                curr_tetrimino.update_coord(IVec2::new(1,0));
                 if Self::detect_tetrimino_collision(&self._block_arr, curr_tetrimino.block_actual_coord()) {
-                    //下一格有碰撞，就停在当前位置
-                    Self::update_block_area(&old_actual_block_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
-                    //位置放回去
-                    curr_tetrimino.update_coord(IVec2::new(0,-1));
+                    curr_tetrimino.update_coord(IVec2::new(-1,0));
+                    Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                     return (false , self.is_top_occupied());
                 }
                 else{
                     //下一格无碰撞，当前位置标记位无占位，下一格位置标记位有占位
-                    Self::update_block_area(&old_actual_block_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
                     Self::update_block_area(curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                     return (true,false);
                 }
@@ -355,23 +352,23 @@ impl PlayField {
     }
     
     /// 初始化区块数据，包含坐标和实际的位置 / Initialize block data, including coordinates and actual positions
-    pub fn init_field_data(&mut self){
-        let mut x : f32 = 0.;
-        let mut y : f32 = 0.;
-        let mut init_coord = constant::BLOCK_INIT_START_COORD;
-        for element in self._block_arr.iter_mut() {
-            for block in element.iter_mut() {
-                block.set_world_position(Vec2::new(init_coord.0, init_coord.1));
-                block.set_coord(x as i32, y as i32);
-                block.set_occupied(0);
-                y += 1.;
-                //y offset
-                init_coord.1 = (x + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
-            }
-            x += 1.;
-            init_coord.0 = (y + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
-        }
-    }
+    // pub fn init_field_data(&mut self){
+    //     let mut x : f32 = 0.;
+    //     let mut y : f32 = 0.;
+    //     let mut init_coord = constant::BLOCK_INIT_START_COORD;
+    //     for element in self._block_arr.iter_mut() {
+    //         for block in element.iter_mut() {
+    //             block.set_world_position(Vec2::new(init_coord.0, init_coord.1));
+    //             block.set_coord(x as i32, y as i32);
+    //             block.set_occupied(0);
+    //             y += 1.;
+    //             //y offset
+    //             init_coord.1 = (x + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
+    //         }
+    //         x += 1.;
+    //         init_coord.0 = (y + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
+    //     }
+    // }
     
     /// 清理并重置放置区域的所有数据 / clear and reset all data of the placement area
     pub fn clear(&mut self){
@@ -402,12 +399,13 @@ impl PlayField {
     fn gen_block_arr() -> [[TetriGridCell;constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS] {
         //#todo这里数组在声明的时候给了个初值，后面又做了一次初始化，看看怎么把这两步合并一下
         let mut block_arr = [[TetriGridCell::new(Vec2::new(0.0,0.0),IVec2::ZERO);constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS];
+        let mut x : f32;
+        let mut y : f32;
+
         for i in 0..constant::PLAY_FIELD_RAWS {
             for j in 0..constant::PLAY_FIELD_COLS {
-                let x = constant::BLOCK_INIT_START_COORD.0 + i as f32 * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
-                let y = constant::BLOCK_INIT_START_COORD.1 + j as f32 * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
-                let x_coord = i as i32;
-                let y_coord = j as i32;
+                x = constant::BLOCK_INIT_START_COORD.0 + i as f32 * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
+                y = constant::BLOCK_INIT_START_COORD.1 + j as f32 * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
                 block_arr[i][j] = TetriGridCell::new(Vec2::new(x,y),IVec2::new(i as i32,j as i32));
                 block_arr[i][j].set_occupied(0);
             }
@@ -427,8 +425,8 @@ impl PlayField {
         for coord in coords_to_update.iter(){
             let x = coord.x as usize;
             let y = coord.y as usize;
-            let mut curr_cell = block_area[coord.x as usize][coord.y as usize];
-            if x < 0 || x >= constant::PLAY_FIELD_COLS || y < 0 || y >= constant::PLAY_FIELD_RAWS {
+            let curr_cell = &mut block_area[coord.x as usize][coord.y as usize];
+            if x < 0 || x >= constant::PLAY_FIELD_RAWS || y < 0 || y >= constant::PLAY_FIELD_COLS {
                 log("play_field.rs","update_block_area() ---> coord out of range",LogLevelEnum::Error);
                 return false;
             }
