@@ -77,6 +77,7 @@ impl Drawable for ProcedurePlaying {
 
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
+        log("ProcedurePlaying.rs","on_tick() ---> tick",LogLevelEnum::Info);
         //每次tick向下落一次
         let fall_succ_and_reached_top = self._play_field.fall_one();
         //顶部存在方块，直接结束游戏
@@ -126,6 +127,7 @@ impl TState for ProcedurePlaying{
         self._performing_coords.clear();
         self._performing_duration = 0.;
         self._flash_time = 0.;
+        //#todo这块的逻辑写的不好，前面已经初始化过tetrimino了
         let gen_tetri_succ = self._play_field.generate_new_tetrimino();
         if !gen_tetri_succ{
             tools::logger::log("app.rs","generate new tetrimino failed.",Fatal);
@@ -244,7 +246,6 @@ impl TState for ProcedurePlaying{
         // main tick
         self._delta_tick += delta_sec;
         if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC {
-            log("procedure_playing.rs", &format!("on_tick"), LogLevelEnum::Info);
             self._delta_tick = 0.;
             self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
         }
@@ -350,12 +351,17 @@ impl ProcedurePlaying {
         let block_area = self._play_field.get_block_area();
         let mut tetri_position_x : f32;
         let mut tetri_position_y : f32;
-
+        let mut x_offset = 0.0;
+        let mut y_offset = 0.0;
+        log("ProcedurePlaying.rs","draw play field",LogLevelEnum::Warning);
         for i in 0..block_area.len(){
+            x_offset = 0.0;
+            y_offset = 0.0;
             for j in 0..block_area[i].len(){
                 //绘制所有方块
                 let coord = block_area[i][j].get_coord();
                 let color = block_area[i][j].color();
+                y_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * j as f32;
                 
                 if self._performing_coords.contains(&(coord.x, coord.y)) || !block_area[i][j].is_occupied() {
                     continue;
@@ -366,8 +372,8 @@ impl ProcedurePlaying {
                         ctx, 
                         graphics::DrawMode::fill(), 
                         graphics::Rect::new(
-                            (coord.x as f32) * constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.0 + constant::BLOCK_COORD_SPACING as f32, 
-                            (coord.y as f32) * constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.1 + constant::BLOCK_COORD_SPACING as f32,
+                            constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.0 + x_offset,
+                            constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.1 + y_offset,
                             constant::BLOCK_SIZE as f32,
                             constant::BLOCK_SIZE as f32
                         ),
@@ -378,6 +384,7 @@ impl ProcedurePlaying {
                     canvas.draw(&mesh, DrawParam::default());
                 }
             }
+            x_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * i as f32;
         }
     }
     

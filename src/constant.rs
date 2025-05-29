@@ -39,7 +39,7 @@ pub const PROC_MAIN_UI_ITEM_TEXT_SCALE : f32 = 60.0;
 //------------------------------color------------------------------
 pub const COLOR_RGB_BLACK : [f32;3] = [0.0 ,0.0 ,0.0];
 pub const COLOR_R1G1B1 : [f32;3] = [1.0 ,1.0 ,1.0];
-pub const COLOR_R1G1B1A1 : [f32;4] = [1.0 ,1.0 ,1.0,1.0];
+pub const COLOR_R1G1B1A1 : [f32;4]  = [1.0 ,1.0 ,1.0,1.0];
 pub const COLOR_R0G0B0A1 : [f32;4] = [0.0 ,0.0 ,0.0, 1.0];
 pub const COLOR_ALPHA_1 : [f32;1] = [1.0];
 pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
@@ -50,11 +50,11 @@ pub const PLAY_FIELD_RAWS : usize = 20;
 /// 游玩区域列数 / play field cols
 pub const PLAY_FIELD_COLS : usize = 10;
 /// 单个方块的尺寸 / size of a single block
-pub const BLOCK_SIZE : f32 = 10.0;
+pub const BLOCK_SIZE : f32 = 30.0;
 /// 方块间的坐标间隔 / spacing between blocks
 pub const BLOCK_COORD_SPACING : u8 = 3;
 /// 方块放置区域初始化的坐标 / init start coordinate
-pub const BLOCK_INIT_START_COORD: (f32, f32) = (100.0, 100.0);
+pub const BLOCK_INIT_START_COORD: (f32, f32) = (153.0, 53.0);
 /// 一个方块最大的占用范围
 pub const BLOCK_MAX_OCCUPIED : usize = 4;
 /// 可处理输入的时间间隔 / Time interval for processing input

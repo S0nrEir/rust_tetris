@@ -29,14 +29,16 @@ impl Tetrimino{
     /// * blocl_area - 游戏区域的方块数据 / block data of the game area
     /// #Return
     /// * 返回一个元组，第一个值表示生成是否成功，第二个值表示失败原因 / return a tuple, the first value indicates whether the generation was successful, and the second value indicates the reason for failure
-    pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::PLAY_FIELD_COLS];constant::PLAY_FIELD_RAWS]) -> (bool,String) {
+    pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS]) -> (bool,String) {
 
         let gen_succ = true;
         let mut failed_msg: String = String::new();
-        let mut rand = rand::thread_rng();
-        let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
-        let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
+        // let mut rand = rand::thread_rng();
+        // let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
+        // let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
 
+        //#todo随机生成方块类型，暂时使用Stick代替
+        let new_tetri_type = TetriminoTypeEnum::try_from(TetriminoTypeEnum::Stick);
         if let Ok(tetri_type) = new_tetri_type{
             self.clear();
             self._tetri_type = tetri_type;
@@ -202,22 +204,25 @@ impl Tetrimino{
     /// * 返回是否更新成功 / return whether the update was successful
     #[inline]
     pub fn update_coord(&mut self,offset:IVec2) -> bool{
+        let mut new_minos : Vec<IVec2> = Vec::new();
         for i in 0..self._minos.len(){
             let new_x = self._minos[i].x + offset.x;
             let new_y = self._minos[i].y + offset.y;
-            if new_x < 0 || new_x >= constant::PLAY_FIELD_RAWS as i32 || new_y < 0 || new_y >= constant::PLAY_FIELD_COLS as i32 {
+            if new_x < 0 || new_x >= constant::PLAY_FIELD_COLS as i32 || new_y < 0 || new_y >= constant::PLAY_FIELD_RAWS as i32 {
                 // log(
                 //     "Tetrimino.rs",
                 //     &format!("update_coord() ---> out of range , x : {} , y : {} , offset x : {} , offset y : {}",self._minos[i].x,self._minos[i].y,offset.x,offset.y)
                 //     ,LogLevelEnum::Warning);
                 return false;
             }
+            new_minos.push(ivec2(new_x, new_y));
         }
 
-        for i in 0..self._minos.len(){
-            self._minos[i].x += offset.x;
-            self._minos[i].y += offset.y;
-        }
+        self._minos = new_minos;
+        // for i in 0..self._minos.len(){
+        //     self._minos[i].x += offset.x;
+        //     self._minos[i].y += offset.y;
+        // }
 
         return true;
     }
@@ -268,15 +273,16 @@ impl Tetrimino{
         }
     }
     
+    //#todo set和get冲突了，没有必要的逻辑
     /// 重新设置方块到顶端 / reset the block to the top
     fn set_spotted_minos(tetri_type : TetriminoTypeEnum,minos:&mut Vec<IVec2>){
         minos.clear();
         match tetri_type {
             TetriminoTypeEnum::Stick => {
-                minos.push(ivec2(0,4));
-                minos.push(ivec2(1,4));
-                minos.push(ivec2(2,4));
-                minos.push(ivec2(3,4));
+                minos.push(ivec2(4,0));
+                minos.push(ivec2(4,1));
+                minos.push(ivec2(4,2));
+                minos.push(ivec2(4,3));
             }
             TetriminoTypeEnum::LeftGun => {
                 minos.push(ivec2(0,3));
@@ -325,16 +331,16 @@ impl Tetrimino{
         let mut minos : Vec<IVec2> = Vec::new();
         match tetri_type {
             TetriminoTypeEnum::Stick => {
-                        minos.push(ivec2(0,4));
-                        minos.push(ivec2(1,4));
-                        minos.push(ivec2(2,4));
-                        minos.push(ivec2(3,4));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(4,1));
+                        minos.push(ivec2(4,2));
+                        minos.push(ivec2(4,3));
                     }
             TetriminoTypeEnum::LeftGun => {
-                        minos.push(ivec2(1,5));
-                        minos.push(ivec2(0,5));
-                        minos.push(ivec2(0,4));
-                        minos.push(ivec2(0,3));
+                        minos.push(ivec2(5,1));
+                        minos.push(ivec2(5,0));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(3,0));
                     }
             TetriminoTypeEnum::RightGun => {
                         minos.push(ivec2(1,0));

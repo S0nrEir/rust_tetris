@@ -92,8 +92,6 @@ impl Tickable for ProcedureMainUI {
 impl TState for ProcedureMainUI{
     
     fn on_enter(&mut self, mut param:Box<dyn ProcedureParam>){
-        self._start_game_flag = true;
-        //let temp = param.as_any_mut().downcast_mut::<ProcedureMainUIParam>();
         
         #[cfg(feature = "debug_log")]{
             crate::tools::logger::log_info_colored(&self, &format!("proc main ui ---> on enter..."), Color::Cyan);
