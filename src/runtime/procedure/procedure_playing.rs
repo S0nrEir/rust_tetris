@@ -53,8 +53,8 @@ pub  struct ProcedurePlaying{
 
 impl Drawable for ProcedurePlaying {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
-        let mut canvas = self.draw_background(ctx);
         
+        let mut canvas = self.draw_background(ctx);
         match self._curr_playing_state { 
             PlayingStateEnum::Falling => {
                 
@@ -69,7 +69,7 @@ impl Drawable for ProcedurePlaying {
         }
         
         self.draw_border(ctx, &mut canvas);
-        // self.draw_play_field(ctx,&mut canvas);
+        self.draw_play_field(ctx,&mut canvas);
         canvas.finish(ctx)?;
         return Ok(());
     }
@@ -92,18 +92,24 @@ impl Tickable for ProcedurePlaying {
             if cleared_line_cnt_and_coords.0 != 0 {
                 self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
                 self.switch_playing_state(PlayingStateEnum::Performing);
-                // if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
-                //     self.settlement();
-                // }
             }
             //没消除，生成新的
             else{
-                let gen_new_succ = self._play_field.generate_new_tetrimino();
-                let is_top_occupied = self._play_field.is_top_occupied();
-                if !gen_new_succ && is_top_occupied {
-                    //如果生成失败且顶部被占用，则结算
-                    self.settlement();
-                }
+                // let gen_new_succ = self._play_field.generate_new_tetrimino();
+                // let is_top_occupied = self._play_field.is_top_occupied();
+                // if !gen_new_succ && is_top_occupied {
+                //     //如果生成失败且顶部被占用，则结算
+                //     self.settlement();
+                // }
+            }
+        }
+        //下落不成功，生成新的
+        else {
+            let gen_new_succ = self._play_field.generate_new_tetrimino();
+            let is_top_occupied = self._play_field.is_top_occupied();
+            if !gen_new_succ && is_top_occupied {
+                //如果生成失败且顶部被占用，则结算
+                self.settlement();
             }
         }
     }
@@ -342,18 +348,21 @@ impl ProcedurePlaying {
     /// 绘制游玩区域 / draw play field
     fn draw_play_field(&self,ctx:&mut Context,canvas:&mut Canvas){
         let block_area = self._play_field.get_block_area();
+        let mut tetri_position_x : f32;
+        let mut tetri_position_y : f32;
+
         for i in 0..block_area.len(){
             for j in 0..block_area[i].len(){
                 //绘制所有方块
-                let block = block_area[i][j];
-                let coord = block.get_coord();
+                let coord = block_area[i][j].get_coord();
+                let color = block_area[i][j].color();
                 
-                if self._performing_coords.contains(&(coord.x, coord.y)){
+                if self._performing_coords.contains(&(coord.x, coord.y)) || !block_area[i][j].is_occupied() {
                     continue;
                 }
                 
                 let mesh = Mesh::new_rectangle
-                    (
+                    ( 
                         ctx, 
                         graphics::DrawMode::fill(), 
                         graphics::Rect::new(
@@ -362,7 +371,7 @@ impl ProcedurePlaying {
                             constant::BLOCK_SIZE as f32,
                             constant::BLOCK_SIZE as f32
                         ),
-                        block.color().clone()
+                        *color
                     );
                 
                 if let Ok(mesh) = mesh{
