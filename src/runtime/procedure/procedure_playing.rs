@@ -1,5 +1,6 @@
 ﻿use std::any::Any;
 use std::collections::{HashSet};
+use std::fmt::format;
 use colored::Color;
 use ggez::{Context, GameResult, graphics};
 use ggez::glam::{IVec2, Vec2};
@@ -71,6 +72,11 @@ impl Drawable for ProcedurePlaying {
         self.draw_border(ctx, &mut canvas);
         self.draw_play_field(ctx,&mut canvas);
         canvas.finish(ctx)?;
+        
+        #[cfg(feature = "debug_log")]{
+            self.draw_playing_state(ctx, &mut canvas);
+        }
+
         return Ok(());
     }
 }
@@ -271,13 +277,7 @@ impl ProcedurePlaying {
         for coords in performing_coords.iter(){
             self._performing_coords.insert((coords.x, coords.y));
         }
-        
-        // self._performing_coords = performing_coords.clone();
-        // self._performing_coords.clear();
-        // for coords in performing_coords.iter(){
-        //     self._performing_coords.insert(format!("{}{}",coords.x,coords.y));
-        // }
-    }
+    }d
     
     /// 切换到指定的游玩状态 / switch to the specified playing state
     fn switch_playing_state(&mut self,state_to_switch:PlayingStateEnum){
@@ -331,6 +331,18 @@ impl ProcedurePlaying {
         }//end for
     }
     
+
+    /// 绘制游玩状态 / draw playing state
+    fn draw_playing_state(&mut self,ctx:&mut Context,canvas:&mut Canvas){
+        let mut text = ggez::graphics::Text::new(format!("Playing State: {}", self._curr_playing_state.as_str()));
+        text.set_font(constant::FONT_NAME);
+        text.set_scale(30.0);
+        canvas.draw(
+            &text,
+            DrawParam::default().dest(Vec2::new(10.0, 800.0)).color(ggez::graphics::Color::WHITE)
+        );
+    }
+
     /// 绘制边框 / draw border
     fn draw_border(&mut self,ctx:&mut Context,canvas:&mut Canvas){
 

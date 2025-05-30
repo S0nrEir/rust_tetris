@@ -12,9 +12,10 @@ colored = "2.0"
 rand = "0.8"
 
 [features]
-# 包含调试日志代码 / Include debug log code 
+# 包含调试输出 / Include debug output
 debug_log = []
-debug_draw_block = []
+# 进入绘制测试流程 / Enter debug drawing mode
+debug_draw = []
 
 [profile.dev]  
 debug = true  

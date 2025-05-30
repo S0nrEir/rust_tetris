@@ -124,10 +124,6 @@ impl App {
             log("app.rs","current procedure is none",Warning);
             //panic!();
         }
-        
-        #[cfg(feature = "debug_log")]{
-            
-        }
     }
 }
 
@@ -168,11 +164,7 @@ impl event::EventHandler<ggez::GameError> for App {
     /// * `GameResult` - 处理结果 / Processing result
     fn key_down_event(&mut self, _ctx: &mut Context, input: KeyInput, repeat: bool) -> GameResult {
         self._input_component.set_curr_input_key(input.keycode);
-        
-        #[cfg(feature = "debug_log")]{
-            log(&self,&format!("Key pressed: keycode {:?},  repeat: {}", input.keycode, repeat),LogLevelEnum::Info);
-        }
-        
+
         return Ok(());
     }
 }

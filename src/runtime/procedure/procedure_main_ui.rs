@@ -39,9 +39,6 @@ impl ProcedureMainUI {
     /// * `move_offset` - 索引偏移 / index offset
     fn select_item(&mut self, move_offset:i8) {
         let new_index = self._selected_item_index + move_offset;
-        #[cfg(feature = "debug_log")]{
-            crate::tools::logger::log_info_colored(&self, &format!("menu select new index:{}", new_index), Color::Cyan);
-        }
         
         if new_index <= 0 {
             self._selected_item_index = 0;
@@ -88,10 +85,6 @@ impl Tickable for ProcedureMainUI {
 impl TState for ProcedureMainUI{
     
     fn on_enter(&mut self, mut param:Box<dyn ProcedureParam>){
-        
-        #[cfg(feature = "debug_log")]{
-            crate::tools::logger::log_info_colored(&self, &format!("proc main ui ---> on enter..."), Color::Cyan);
-        }
     }
     
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{

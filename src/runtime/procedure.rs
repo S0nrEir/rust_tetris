@@ -52,12 +52,6 @@ impl ProcedureComponent {
                 },
             };
         }
-        // procedure_component.set_default_procedure(entry_procedure_index);
-        #[cfg(feature = "debug_log")]
-        {
-            let all_procedure = procedure_component.all_procedure_name();
-            log(&procedure_component,&format!("all procedure : {:?}",all_procedure),LogLevelEnum::Info);
-        }
         
         return procedure_component;
     }
@@ -199,17 +193,6 @@ impl ProcedureComponent {
         return Ok(());
     }
 }
-
-// impl Tickable for ProcedureComponent {
-//     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
-//         if let Some(curr_procedure) = &mut self._current_procedure{
-//             curr_procedure.on_tick(ctx,delta_time,interval);
-//         }
-//         #[cfg(feature = "debug_log")]{
-//             crate::tools::logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
-//         }
-//     }
-// }
 
 impl Updatable for ProcedureComponent {
     fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum> {
