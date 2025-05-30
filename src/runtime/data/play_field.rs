@@ -72,10 +72,13 @@ impl PlayField {
             
             Some(ref mut curr_tetrimino) => {
                 let tetri_color = curr_tetrimino.color();
-                // let old_actual_block_coords = curr_tetrimino.block_actual_coord().clone();
+                //先检测下一格有没有可移动的格子
+                
                 Self::update_block_area(curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
-
-                curr_tetrimino.update_coord(IVec2::new(0,1));
+                if !curr_tetrimino.update_coord(IVec2::new(0,1)){
+                    Self::update_block_area(curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
+                    return (false,self.is_top_occupied());
+                }
                 if Self::detect_tetrimino_collision(&self._block_arr, curr_tetrimino.block_actual_coord()) {
                     curr_tetrimino.update_coord(IVec2::new(0,-1));
                     Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
