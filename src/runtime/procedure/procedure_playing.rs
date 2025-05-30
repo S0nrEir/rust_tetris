@@ -367,12 +367,12 @@ impl ProcedurePlaying {
         for i in 0..block_area.len(){
             x_offset = 0.0;
             y_offset = 0.0;
+            x_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * i as f32;
             for j in 0..block_area[i].len(){
                 //绘制所有方块
                 let coord = block_area[i][j].get_coord();
                 let color = block_area[i][j].color();
                 y_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * j as f32;
-                
                 if self._performing_coords.contains(&(coord.x, coord.y)) || !block_area[i][j].is_occupied() {
                     continue;
                 }
@@ -394,7 +394,7 @@ impl ProcedurePlaying {
                     canvas.draw(&mesh, DrawParam::default());
                 }
             }
-            x_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * i as f32;
+            
         }
     }
     
@@ -411,8 +411,6 @@ impl ProcedurePlaying {
     pub fn new() -> Self{
         let min_position = constant::BORDER_MIN_POSITION;
         let max_position = constant::BORDER_MAX_POSITION;
-        
-        log("procedure_playing.rs","procedure_playing.rs ---> create ProcedurePlaying",LogLevelEnum::Info);
         
         return ProcedurePlaying{
             _play_field: PlayField::new(),

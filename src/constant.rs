@@ -62,7 +62,7 @@ pub const BLOCK_INIT_START_COORD: (f32, f32) = (153.0, 53.0);
 /// 一个方块最大的占用范围
 pub const BLOCK_MAX_OCCUPIED : usize = 4;
 /// 可处理输入的时间间隔 / Time interval for processing input
-pub  const INPUT_HANDLE_INTERVAL : f32 = 0.5;
+pub  const INPUT_HANDLE_INTERVAL : f32 = 0.3;
 
 pub const BORDER_MIN_POSITION : Vec2 = Vec2::new(150.0, 50.0);
 pub const BORDER_MAX_POSITION : Vec2 = Vec2::new(600.0, 750.0);

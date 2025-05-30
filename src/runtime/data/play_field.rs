@@ -139,8 +139,7 @@ impl PlayField {
     /// * 是否移动成功 / whether the move is successful
     pub fn try_horizontal_move_tetrimino(&mut self,offset:i32) -> bool{
         
-        if offset != 1 && offset != -1 {
-            log("play_field.rs","try_horizontal_move_tetrimino() ---> offset is not 1 or -1",LogLevelEnum::Error);
+        if offset != 1 && offset != -1{
             return false;
         }
         
