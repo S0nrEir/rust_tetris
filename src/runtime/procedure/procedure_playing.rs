@@ -71,11 +71,12 @@ impl Drawable for ProcedurePlaying {
         
         self.draw_border(ctx, &mut canvas);
         self.draw_play_field(ctx,&mut canvas);
-        canvas.finish(ctx)?;
         
         #[cfg(feature = "debug_log")]{
             self.draw_playing_state(ctx, &mut canvas);
         }
+
+        canvas.finish(ctx)?;
 
         return Ok(());
     }
@@ -83,7 +84,6 @@ impl Drawable for ProcedurePlaying {
 
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
-        log("ProcedurePlaying.rs","on_tick() ---> tick",LogLevelEnum::Info);
         //每次tick向下落一次
         let fall_succ_and_reached_top = self._play_field.fall_one();
         //顶部存在方块，直接结束游戏
@@ -277,7 +277,7 @@ impl ProcedurePlaying {
         for coords in performing_coords.iter(){
             self._performing_coords.insert((coords.x, coords.y));
         }
-    }d
+    }
     
     /// 切换到指定的游玩状态 / switch to the specified playing state
     fn switch_playing_state(&mut self,state_to_switch:PlayingStateEnum){
@@ -336,7 +336,7 @@ impl ProcedurePlaying {
     fn draw_playing_state(&mut self,ctx:&mut Context,canvas:&mut Canvas){
         let mut text = ggez::graphics::Text::new(format!("Playing State: {}", self._curr_playing_state.as_str()));
         text.set_font(constant::FONT_NAME);
-        text.set_scale(30.0);
+        text.set_scale(15.0);
         canvas.draw(
             &text,
             DrawParam::default().dest(Vec2::new(10.0, 800.0)).color(ggez::graphics::Color::WHITE)
@@ -365,7 +365,7 @@ impl ProcedurePlaying {
         let mut tetri_position_y : f32;
         let mut x_offset = 0.0;
         let mut y_offset = 0.0;
-        log("ProcedurePlaying.rs","draw play field",LogLevelEnum::Warning);
+
         for i in 0..block_area.len(){
             x_offset = 0.0;
             y_offset = 0.0;
