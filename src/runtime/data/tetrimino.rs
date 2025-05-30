@@ -218,6 +218,16 @@ impl Tetrimino{
         return true;
     }
     
+    pub fn update_coord_by_vec2(&mut self,new_coords:Vec<IVec2>) -> bool{
+        if new_coords.len() != self._minos.len() {
+            log("Tetrimino.rs","update_coord_by_vec2() ---> new coords length is not equal to minos length",LogLevelEnum::Error);
+            return false;
+        }
+        
+        self._minos = new_coords;
+        return true;
+    }
+    
     /// 获取方块颜色 / get the block color
     #[inline]
     pub fn color(&self) -> TetriminoColorEnum{

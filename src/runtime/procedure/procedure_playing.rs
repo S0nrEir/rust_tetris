@@ -140,6 +140,7 @@ impl TState for ProcedurePlaying{
     }
 
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
+
         self._curr_input = key_code;
         self._input_interval += delta_sec;
         let mut procedure_to_return : Option<ProcedureEnum> = None;

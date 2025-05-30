@@ -155,62 +155,19 @@ impl PlayField {
                     }
                 }
                 
-                let move_succ = Self::detect_tetrimino_collision(&self._block_arr, &new_coords);
-                if(move_succ){
+                if !Self::detect_tetrimino_collision(&self._block_arr, &new_coords){
                     Self::update_block_area(curr_tetrimino.block_actual_coord(),0, &mut self._block_arr,PlayFieldColorEnum::Black);
                     Self::update_block_area(&new_coords,1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(curr_tetrimino.color()));
-                    curr_tetrimino.update_coord(IVec2::new(offset,0));
+                    curr_tetrimino.update_coord_by_vec2(new_coords);
+                    return true;
                 }
-                return move_succ;
+                return false;
             }
             None => {
                 log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
                 return false;
             }
         }
-        
-        // match self._curr_terimino {
-        //     Some(ref mut curr_terimino) => {
-        //         let tetri_coords = curr_terimino.block_actual_coord();
-        //         let offset = if move_right {1} else {-1};
-        //         let new_x = tetri_coords.x + offset;
-        // 
-        //         if new_x < 0 || new_x as usize >= constant::PLAY_FIELD_COLS {
-        //             log("play_field.rs",&format!("try_horizontal_move_tetrimino() ---> move out of range,curr tetrimino x coord : {},y coord : {}",tetri_coords.x,tetri_coords.y),LogLevelEnum::Warning);
-        //             return false;
-        //         }
-        // 
-        //         match self._curr_terimino { 
-        // 
-        //             Some(ref mut curr_tetrimino) => {
-        //                 let tetri_color = curr_tetrimino.color();
-        //                 let old_actual_coords = curr_tetrimino.block_actual_coord().clone();
-        //                 curr_tetrimino.update_coord(IVec2::new(offset,0));
-        //                 let new_actual_coords = curr_tetrimino.block_actual_coord();
-        //                 for coords in new_actual_coords.iter() {
-        //                     //有碰撞则视为失败
-        //                     if self._block_arr[coords.x as usize][coords.y as usize].is_occupied() {
-        //                         curr_tetrimino.update_coord(IVec2::new(-offset,0));
-        //                         return false;
-        //                     }
-        //                 }
-        //                 Self::update_block_area(&old_actual_coords, 0, &mut self._block_arr,PlayFieldColorEnum::Black);
-        //                 Self::update_block_area(&new_actual_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
-        //                 return true;
-        //             },
-        // 
-        //             None => {
-        //                 return false;
-        //             }
-        // 
-        //         }
-        //     },
-        // 
-        //     None => {
-        //         log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
-        //         return false;
-        //     }
-        // }//end match
     }
 
     /// 尝试旋转当前方块，如果旋转方块成功且无占位不冲突，则将更新grid area占位情况和对应的tetri / Try to rotate the current block, if the rotation block is successful and there is no conflict with the occupancy, the occupancy situation of the grid area and the corresponding tetri will be updated

@@ -164,9 +164,20 @@ impl event::EventHandler<ggez::GameError> for App {
     /// * `GameResult` - 处理结果 / Processing result
     fn key_down_event(&mut self, _ctx: &mut Context, input: KeyInput, repeat: bool) -> GameResult {
         self._input_component.set_curr_input_key(input.keycode);
-
         return Ok(());
     }
+    
+    /// 键盘松开输入处理 / Keyboard up input processing
+    /// # Arguments
+    /// * `ctx` - 上下文对象 / Context object
+    /// * `input` - 键盘输入 / Keyboard input
+    /// * # Return
+    /// * `GameResult` - 处理结果 / Processing result
+    fn key_up_event(&mut self, _ctx: &mut Context, _input: KeyInput) -> Result<(), ggez::GameError> {
+        self._input_component.set_curr_input_key(None);
+        return Ok(());
+    }
+
 }
 
 //-------------impl Debug----------------

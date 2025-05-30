@@ -82,14 +82,7 @@ impl InputComponent {
     /// #Arguments
     /// * `key` - 要设置的键 / key to set
     pub fn set_curr_input_key(&mut self,key:Option<KeyCode>){
-        if let Some(key_code) = key{
-            //在流程内检查输入，这里不需要了 / Check input in the process, no longer needed here
-            // if !(self._input_filter)(key.unwrap()){
-            //     log(&self, &format!("input not impled,keycode"), LogLevelEnum::Warning);
-            //     return;
-            // }
-            self._curr_input_key = key;
-        }
+        self._curr_input_key = key;
     }
     
     pub fn set_input_filter_mode(&mut self,procedure:ProcedureEnum){
