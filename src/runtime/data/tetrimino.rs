@@ -209,21 +209,12 @@ impl Tetrimino{
             let new_x = self._minos[i].x + offset.x;
             let new_y = self._minos[i].y + offset.y;
             if new_x < 0 || new_x >= constant::PLAY_FIELD_COLS as i32 || new_y < 0 || new_y >= constant::PLAY_FIELD_RAWS as i32 {
-                // log(
-                //     "Tetrimino.rs",
-                //     &format!("update_coord() ---> out of range , x : {} , y : {} , offset x : {} , offset y : {}",self._minos[i].x,self._minos[i].y,offset.x,offset.y)
-                //     ,LogLevelEnum::Warning);
                 return false;
             }
             new_minos.push(ivec2(new_x, new_y));
         }
 
         self._minos = new_minos;
-        // for i in 0..self._minos.len(){
-        //     self._minos[i].x += offset.x;
-        //     self._minos[i].y += offset.y;
-        // }
-
         return true;
     }
     

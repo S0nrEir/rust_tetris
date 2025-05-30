@@ -31,11 +31,7 @@ pub  struct ProcedurePlaying{
     _input_interval : f32,
     // tick轮询时间 / tick polling time
     _delta_tick : f32,
-    
     //绘制相关 / draw related
-    /// 要绘制的mesh集合，每一个mesh表示一个方块 / mesh collection to be drawn, each mesh represents a block
-    //_meshes: [[Mesh;constant::BLOCK_AREA_MAX_HORIZONTAL_BLOCK_CNT];constant::BLOCK_AREA_MAX_VERTICAL_BLOCK_CNT],
-    
     //------------游玩表现相关------------
     /// 当前的游玩状态 / current playing state
     _curr_playing_state : PlayingStateEnum,
@@ -71,8 +67,8 @@ impl Drawable for ProcedurePlaying {
         
         self.draw_border(ctx, &mut canvas);
         self.draw_play_field(ctx,&mut canvas);
-        
-        #[cfg(feature = "debug_log")]{
+        self.draw_playing_info(ctx, &mut canvas);
+        #[cfg(feature = "debug")]{
             self.draw_playing_state(ctx, &mut canvas);
         }
 
@@ -251,9 +247,10 @@ impl TState for ProcedurePlaying{
         
         // main tick
         self._delta_tick += delta_sec;
-        if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL_1_SEC {
+
+        if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL {
             self._delta_tick = 0.;
-            self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL_1_SEC);
+            self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL);
         }
         
         self._curr_input = None;
@@ -431,7 +428,8 @@ impl ProcedurePlaying {
                                  Vec2::new(max_position.x, min_position.y),
                                  max_position,
                                  Vec2::new(min_position.x, max_position.y),
-                                 min_position]
+                                 min_position],
+            
         };
     }
 }

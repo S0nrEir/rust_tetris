@@ -19,8 +19,12 @@ pub const APP_AUTHOR_NAME : &str = "SonrEir";
 ///帧率
 pub const APP_FPS : u32 = 60;
 
+#[cfg(feature = "debug")]
 /// 1秒钟主逻辑更新时间 / 1 second main logic update time
-pub const APP_MAIN_TICK_INTERVAL_1_SEC : f32 = 1.0;
+pub const APP_MAIN_TICK_INTERVAL : f32 = 0.3;
+/// 1秒钟主逻辑更新时间 / 1 second main logic update time
+#[cfg(not(feature = "debug"))]
+pub const APP_MAIN_TICK_INTERVAL : f32 = 1.0;
 
 //------------------------------runtime------------------------------
 ///初始流程下标索引

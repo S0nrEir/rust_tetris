@@ -12,8 +12,8 @@ colored = "2.0"
 rand = "0.8"
 
 [features]
-# 包含调试输出 / Include debug output
-debug_log = []
+# 调试模式
+debug = []
 # 进入绘制测试流程 / Enter debug drawing mode
 debug_draw = []
 
