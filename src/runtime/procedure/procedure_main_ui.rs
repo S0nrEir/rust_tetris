@@ -89,11 +89,11 @@ impl TState for ProcedureMainUI{
     
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
         
-        if(self._start_game_flag){
+        if self._start_game_flag {
             return Some(ProcedureEnum::Playing);
         }
         
-        if(key_code.is_none()){
+        if key_code.is_none() {
             return Some(ProcedureEnum::MainUI);
         }
         
@@ -107,6 +107,9 @@ impl TState for ProcedureMainUI{
             KeyCode::Down => {
                 self.select_item(-1);
             },
+            KeyCode::Escape => {
+                ctx.request_quit();
+            }
             _ => {},
         }
         return Some(ProcedureEnum::MainUI);

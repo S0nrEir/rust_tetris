@@ -154,19 +154,22 @@ impl PlayField {
                     }
                 }
                 
+                let color = curr_tetrimino.color();
+                Self::update_block_area(curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
                 if !Self::detect_tetrimino_collision(&self._block_arr, &new_coords){
-                    Self::update_block_area(curr_tetrimino.block_actual_coord(),0, &mut self._block_arr,PlayFieldColorEnum::Black);
-                    Self::update_block_area(&new_coords,1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(curr_tetrimino.color()));
                     curr_tetrimino.update_coord_by_vec2(new_coords);
+                    Self::update_block_area(curr_tetrimino.block_actual_coord(),1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(color));
                     return true;
                 }
+                Self::update_block_area(curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(color));
                 return false;
-            }
+            }//
+            
             None => {
                 log("play_field.rs","try_horizontal_move_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
                 return false;
             }
-        }
+        }//end match
     }
 
     /// 尝试旋转当前方块，如果旋转方块成功且无占位不冲突，则将更新grid area占位情况和对应的tetri / Try to rotate the current block, if the rotation block is successful and there is no conflict with the occupancy, the occupancy situation of the grid area and the corresponding tetri will be updated
@@ -177,35 +180,30 @@ impl PlayField {
     pub fn try_rotate_tetrimino(&mut self,close_wise:bool) -> bool{
         match self._curr_terimino {
             Some(ref mut curr_terimino) => {
-                //let old_actual_block_coords = curr_terimino.block_actual_coord().clone();
-                let mut old_tetrimino = curr_terimino.clone();
-                //turn right
+                let old_coord = curr_terimino.block_actual_coord().clone();
+                Self::update_block_area(&old_coord, 0, &mut self._block_arr , PlayFieldColorEnum::Black);
                 if close_wise {
                     curr_terimino.rotate(true);
                 }
-                //turn left
                 else { 
                     curr_terimino.rotate(false);
                 }
-                
-                let new_actual_block_coords = curr_terimino.block_actual_coord();
-                if Self::detect_tetrimino_collision(&self._block_arr, &new_actual_block_coords){
-                    //如果有碰撞，则将curr tetri还原为old tetri
-                    *curr_terimino = old_tetrimino;
+
+                let color = curr_terimino.color();
+                if Self::detect_tetrimino_collision(&self._block_arr, curr_terimino.block_actual_coord()) {
+                    curr_terimino.update_coord_by_vec2(old_coord);
+                    Self::update_block_area(curr_terimino.block_actual_coord(), 1, &mut self._block_arr , PlayFieldColorEnum::BlockColor(color));
                     return false;
                 }
-                
-                Self::update_block_area(&old_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
-                Self::update_block_area(new_actual_block_coords, 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(old_tetrimino.color()));
+                Self::update_block_area(&curr_terimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(color));
                 return true;
             },
+
             None => {
                 log("play_field.rs","try_rotate_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
                 return false;
             }
         }
-        
-        return true;
     }
     
     /// 获取当前的方块类型 / get the current tetrimino type

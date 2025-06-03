@@ -98,12 +98,6 @@ impl Tickable for ProcedurePlaying {
             }
             //没消除，生成新的
             else{
-                // let gen_new_succ = self._play_field.generate_new_tetrimino();
-                // let is_top_occupied = self._play_field.is_top_occupied();
-                // if !gen_new_succ && is_top_occupied {
-                //     //如果生成失败且顶部被占用，则结算
-                //     self.settlement();
-                // }
             }
         }
         //下落不成功，生成新的
@@ -119,7 +113,7 @@ impl Tickable for ProcedurePlaying {
 }
 
 impl TState for ProcedurePlaying{
-    fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
+    fn on_enter(&mut self , param : Box<dyn ProcedureParam>){
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
         self._play_field.reset();
         // self._play_field.init_field_data();
@@ -190,8 +184,7 @@ impl TState for ProcedurePlaying{
                         },//end match down
                         //左右移动
                         KeyCode::Left | KeyCode::Right | KeyCode::A | KeyCode::D => {
-                            let offset = if actual_key_code == KeyCode::Right || actual_key_code == KeyCode::D {1} else {-1};
-                            self._play_field.try_horizontal_move_tetrimino(offset);
+                            self._play_field.try_horizontal_move_tetrimino(if actual_key_code == KeyCode::Right || actual_key_code == KeyCode::D {1} else {-1});
                         },
                         //旋转
                         KeyCode::Up | KeyCode::W => {
@@ -200,7 +193,7 @@ impl TState for ProcedurePlaying{
                         }
                         //退出
                         KeyCode::Escape => {
-
+                            ctx.request_quit();
                         }
                         _ => {}
                     }
@@ -359,14 +352,12 @@ impl ProcedurePlaying {
     /// 绘制游玩区域 / draw play field
     fn draw_play_field(&self,ctx:&mut Context,canvas:&mut Canvas){
         let block_area = self._play_field.get_block_area();
-        let mut tetri_position_x : f32;
-        let mut tetri_position_y : f32;
-        let mut x_offset = 0.0;
-        let mut y_offset = 0.0;
+        let mut x_offset : f32;
+        let mut y_offset : f32;
 
         for i in 0..block_area.len(){
-            x_offset = 0.0;
-            y_offset = 0.0;
+            // x_offset = 0.0;
+            // y_offset = 0.0;
             x_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * i as f32;
             for j in 0..block_area[i].len(){
                 //绘制所有方块
@@ -399,7 +390,7 @@ impl ProcedurePlaying {
     }
     
     /// 绘制游玩信息 / draw playing info
-    fn draw_playing_info(&self,ctx:&mut Context,canvas:& mut Canvas){
+    fn draw_playing_info(&self, ctx : &mut Context , canvas : &mut Canvas){
         
     }
     
