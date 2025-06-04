@@ -52,7 +52,7 @@ pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
 /// 游玩区域行数 / play field rows
 pub const PLAY_FIELD_RAWS : usize = 20;
 /// 游玩区域列数 / play field cols
-pub const PLAY_FIELD_COLS : usize = 10;
+pub const PLAY_FIELD_COLS : usize = 11;
 /// 单个方块的尺寸 / size of a single block
 pub const BLOCK_SIZE : f32 = 30.0;
 /// 方块间的坐标间隔 / spacing between blocks

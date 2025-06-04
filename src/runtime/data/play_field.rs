@@ -1,4 +1,5 @@
-﻿use std::num::ParseFloatError;
+﻿use std::io::Lines;
+use std::num::ParseFloatError;
 use ggez::glam::{IVec2, Vec2};
 use ggez::graphics::Color;
 use crate::constant;
@@ -63,6 +64,13 @@ impl PlayField {
     pub fn block_area(&self) -> & [[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS]{
         return &self._block_arr;
     }
+
+    /// 获取方块区域 / get block area
+    /// #Return
+    /// * 返回方块区域 / return block area
+    pub fn block_area_mut(&mut self) -> &mut [[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS]{
+        return &mut self._block_arr;
+    }
     
     /// 将当前方块下降一格 / Drop the current block by one grid
     /// #Return
@@ -101,34 +109,41 @@ impl PlayField {
     /// #Return
     /// * item0表示下落是否成功，item1表示是否到达顶部，即不可再生成新的方块 / item1 indicates whether the drop is successful, item2 indicates whether the top is reached, that is, no new blocks can be generated
     pub fn try_fall_to_bottom(&mut self) -> (bool,bool){
-
+        
         if let Some(ref mut curr_tetrimino) = self._curr_terimino{
-            let tetri_color = curr_tetrimino.color();
-            let mut temp_coords = curr_tetrimino.block_actual_coord().clone();
-            // let new_actual_coords = curr_tetrimino.block_actual_coord().clone();
+            let mut old_coords = curr_tetrimino.block_actual_coord().clone();
+            let mut move_counter  = 0;
+            Self::update_block_area(curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+
+            for i in 0..old_coords.len() {
+                old_coords[i].y += 1;
+            }
             
-            let mut move_counter = 0;
-            while !Self::detect_tetrimino_collision(&self._block_arr, &temp_coords) {
-                for i in 0..temp_coords.len() {
-                    temp_coords[i].y += 1;
+            while !Self::detect_tetrimino_collision_one_by_one(&self._block_arr, &old_coords) {
+                for i in 0..old_coords.len() {
+                    old_coords[i].y += 1;
                 }
                 move_counter += 1;
             }
-            
-            //有移动，将老的坐标占位标记清除 
+
             if move_counter > 0 {
-                Self::update_block_area(&curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
+                let color = curr_tetrimino.color();
+                curr_tetrimino.update_coord(IVec2::new(0,move_counter));
+                Self::update_block_area(curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(color));
+                return (true,self.is_top_occupied());
             }
+            else {
+                Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::Black);
+            }
+
+            return (false,false);
             
-            curr_tetrimino.update_coord(IVec2::new(0,move_counter));
-            Self::update_block_area(curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
-            return (true,self.is_top_occupied());
         }
         else{
             log("play_field.rs","try_fall_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
             return (false,false);
             
-        }//end match
+        }
     }
     
     
@@ -229,59 +244,63 @@ impl PlayField {
     /// #Return
     /// * 返回消除的行数和对应的游玩区域坐标 / return the number of lines cleared and the corresponding coordinates
     pub fn try_clear_line(&mut self) -> (u8,Vec<IVec2>){
-        
-        //#todo:临时测试代码，先返回临时值
-        return (0, Vec::new());
 
         let mut cleared_cells : Vec<IVec2> = Vec::new();
         let mut line_index = 0;
         let mut is_line_full = true;
         let mut cleared_lines = 0;
-        
-        // 找到填满可以消除的行
-        for line in self._block_arr.iter_mut(){
+        let mut curr_col = 0;
+        // let raws_len = self._block_arr[0].len();
 
-            for block in line.iter() {
-                if !block.is_occupied(){
+        // for line in self._block_arr.iter_mut(){
+        //     for block in line.iter() {
+        //         if !block.is_occupied(){
+        //             is_line_full = false;
+        //             break;
+        //         }
+        //     }
+            
+        //     if is_line_full {
+        //         for block in line.iter_mut(){
+        //             block.set_occupied(0);
+        //             //#todo:不要使用clone
+        //             let coord = block.get_coord().clone();
+        //             cleared_cells.push(IVec2::new(coord.x,coord.y));
+        //         }
+        //         cleared_lines += 1;
+        //     }
+            
+        //     is_line_full = true;
+        //     line_index += 1;
+            
+        // }
+
+        // return  (cleared_lines as u8, cleared_cells);
+        for j in 0..constant::PLAY_FIELD_RAWS{
+            curr_col = j;
+            for i in 0..constant::PLAY_FIELD_COLS{
+                
+                if !self._block_arr[i][j].is_occupied() {
                     is_line_full = false;
                     break;
                 }
             }
-            
+
             if is_line_full {
-                for block in line.iter_mut(){
-                    block.set_occupied(0);
-                    //#todo:不要使用clone
-                    let coord = block.get_coord().clone();
-                    cleared_cells.push(IVec2::new(coord.x,coord.y));
-                }
                 cleared_lines += 1;
+                for i in 0..constant::PLAY_FIELD_COLS{
+                    cleared_cells.push(IVec2::new(i as i32,curr_col as i32));
+                    self._block_arr[i][curr_col].set_occupied(0);
+                    self._block_arr[i][curr_col].set_color(Color::BLACK);
+                }
             }
-            
+
             is_line_full = true;
-            line_index += 1;
+
         }
-        return  (cleared_lines as u8, cleared_cells);
+        return (cleared_lines , cleared_cells);
+
     }
-    
-    /// 初始化区块数据，包含坐标和实际的位置 / Initialize block data, including coordinates and actual positions
-    // pub fn init_field_data(&mut self){
-    //     let mut x : f32 = 0.;
-    //     let mut y : f32 = 0.;
-    //     let mut init_coord = constant::BLOCK_INIT_START_COORD;
-    //     for element in self._block_arr.iter_mut() {
-    //         for block in element.iter_mut() {
-    //             block.set_world_position(Vec2::new(init_coord.0, init_coord.1));
-    //             block.set_coord(x as i32, y as i32);
-    //             block.set_occupied(0);
-    //             y += 1.;
-    //             //y offset
-    //             init_coord.1 = (x + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
-    //         }
-    //         x += 1.;
-    //         init_coord.0 = (y + 1.) * (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32);
-    //     }
-    // }
     
     /// 清理并重置放置区域的所有数据 / clear and reset all data of the placement area
     pub fn clear(&mut self){
@@ -391,14 +410,6 @@ impl PlayField {
             }
         }
         return false;
-
-        // let first_row = block_area[0];
-        // for cell in first_row.iter(){
-        //     if cell.is_occupied() {
-        //         return true;
-        //     }
-        // }
-        // return false;
     }
     
     /// 重置游玩区域的所有数据
@@ -413,6 +424,46 @@ impl PlayField {
                 self._block_arr[i][j].set_occupied(0);
             }
         }
+    }
+    
+    fn detect_tetrimino_collision_one_by_one
+    (
+        block_area:&[[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS],
+        tetri_actual_coords : &Vec<IVec2>
+    ) -> bool {
+        
+        for coord in tetri_actual_coords {
+            
+            if coord.x < 0 || coord.x as usize >= constant::PLAY_FIELD_COLS || coord.y < 0 || coord.y as usize >= constant::PLAY_FIELD_RAWS {
+                // log("play_field.rs","detect_tetrimino_collision_one_by_one() ---> coord out of range",LogLevelEnum::Error);
+                return true;
+            }
+            
+            if block_area[coord.x as usize][coord.y as usize].is_occupied(){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /// 检查游玩区域的指定坐标位置是否有方块占位 / Check whether there is a block occupied at the specified coordinate position in the play area
+    /// #Arguments
+    /// * `block_area` - 方块区域 / block area
+    /// * `x` - x坐标 / x coordinate
+    /// * `y` - y坐标 / y coordinate
+    /// #Return
+    /// * 是否有方块占位，冲突返回true / whether there is a block occupied, return true if there is a conflict
+    fn detect_tetrimino_collision_one_cell(
+        block_area:&[[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS],
+        x : usize,
+        y : usize) -> bool
+    {
+        if x >= constant::PLAY_FIELD_COLS || y >= constant::PLAY_FIELD_RAWS {
+            log("play_field.rs","detecte_tetrimino_collision_one_cell() ---> coord out of range",LogLevelEnum::Error);
+            return false;
+        }
+        
+        return  block_area[x][y].is_occupied();
     }
     
     /// 检查给定方块的区域坐标是否与游玩区域冲突 / check whether the area coordinates of the given block conflict with the play area

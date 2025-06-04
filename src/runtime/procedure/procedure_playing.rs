@@ -46,6 +46,9 @@ pub  struct ProcedurePlaying{
     
     /// 边框屏幕坐标位置 / border screen positions
     _border_positions : [Vec2;5],
+
+    ///调试相关 / debug related
+    _is_paused : bool,
 }
 
 impl Drawable for ProcedurePlaying {
@@ -80,7 +83,6 @@ impl Drawable for ProcedurePlaying {
 
 impl Tickable for ProcedurePlaying {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
-        //每次tick向下落一次
         let fall_succ_and_reached_top = self._play_field.fall_one();
         //顶部存在方块，直接结束游戏
         if fall_succ_and_reached_top.1 {
@@ -90,7 +92,7 @@ impl Tickable for ProcedurePlaying {
         
         if fall_succ_and_reached_top.0 {
             //下落成功检查消除
-            let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+            let cleared_line_cnt_and_coords  = self._play_field.try_clear_line();
             //有消除，重新生成
             if cleared_line_cnt_and_coords.0 != 0 {
                 self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
@@ -116,7 +118,6 @@ impl TState for ProcedurePlaying{
     fn on_enter(&mut self , param : Box<dyn ProcedureParam>){
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
         self._play_field.reset();
-        // self._play_field.init_field_data();
         self._play_field.init_tetrimino();
         self._input_interval = 0.;
         self._delta_tick = 0.;
@@ -165,6 +166,9 @@ impl TState for ProcedurePlaying{
                             //未到达顶部
                             else{
                                 let cleared_line_cnt_and_coords = self._play_field.try_clear_line();
+                                #[cfg(feature = "debug")]{
+                                    log("ProcedurePlaying",&format!("fall success, cleared line count : {}",cleared_line_cnt_and_coords.0 ),LogLevelEnum::Info);
+                                }
                                 //未到达顶部，没有消除，重新生成
                                 if  cleared_line_cnt_and_coords.0 == 0 {
                                     //生成失败也结算
@@ -188,13 +192,18 @@ impl TState for ProcedurePlaying{
                         },
                         //旋转
                         KeyCode::Up | KeyCode::W => {
-                            //旋转成功，更新grid
                             self._play_field.try_rotate_tetrimino(true);
                         }
                         //退出
                         KeyCode::Escape => {
                             ctx.request_quit();
                         }
+                        KeyCode::Pause => {
+                            #[cfg(feature = "debug")]{
+                                self._is_paused = !self._is_paused;
+                            }
+                        }
+
                         _ => {}
                     }
                     self._input_interval = 0.0;
@@ -204,33 +213,40 @@ impl TState for ProcedurePlaying{
                 procedure_to_return = Some(ProcedureEnum::Playing);
             },//end match falling
             
-            //处理表现
             PlayingStateEnum::Performing => {
+
+                #[cfg(feature = "debug")]{
+                    log("Performing...", &format!("on_update, performing duration: {}, flash time: {}", self._performing_duration, self._flash_time), LogLevelEnum::Info);
+                }
+
                 self._performing_duration += delta_sec;
                 if self._performing_duration >= constant::PLAYFIELD_PERFORMING_INTERVAL{
                     procedure_to_return = Some(ProcedureEnum::Playing);
                     self._performing_duration = 0.;
+                    self._flash_time = 0.;
+                    self._flash_color = graphics::Color::WHITE;
                     self._performing_coords.clear();
                     self._play_field.generate_new_tetrimino();
+                    self._flash_color = graphics::Color::WHITE;
                     self.switch_playing_state(PlayingStateEnum::Falling);
                 }
                 else{
                     self._flash_time += delta_sec;
                     if self._flash_time >= constant::PLAYFIELD_FLASHING_INTERVAL{
-                        self._flash_color.r += self._flash_color.r * -1.;
-                        self._flash_color.r += self._flash_color.g * -1.;
-                        self._flash_color.r += self._flash_color.b * -1.;
+                        self._flash_color.r = self._flash_color.r - 0.2;
+                        self._flash_color.g = self._flash_color.g - 0.2;
+                        self._flash_color.b = self._flash_color.b - 0.2;
+                        self._flash_time = 0.;
                     }
                 }
+                procedure_to_return = Some(ProcedureEnum::Playing);
             },//end match performing
             
             //结算
             PlayingStateEnum::Settlement =>{
-                //没有输入就不做处理
                 if key_code.is_none(){
                     procedure_to_return = Some(ProcedureEnum::Playing);
                 }
-                //有任何输入，就进入结束游戏流程
                 else{
                     procedure_to_return = Some(ProcedureEnum::Over);
                 }
@@ -242,7 +258,14 @@ impl TState for ProcedurePlaying{
         // main tick
         self._delta_tick += delta_sec;
 
-        if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL {
+        if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL && 
+            !self._is_paused && 
+            self._curr_playing_state == PlayingStateEnum::Falling {
+
+            #[cfg(feature = "debug")]{
+                log("ProcedurePlaying", &format!("on_tick, delta_sec: {}", delta_sec), LogLevelEnum::Info);
+            }
+
             self._delta_tick = 0.;
             self.on_tick(ctx,delta_sec,constant::APP_MAIN_TICK_INTERVAL);
         }
@@ -277,9 +300,10 @@ impl ProcedurePlaying {
             PlayingStateEnum::Falling => {
             },
             PlayingStateEnum::Performing => {
-                self._performing_duration = 0.;
-                self._flash_time = 0.;
-                self._performing_coords.clear();
+                // self._performing_duration = 0.;
+                // self._flash_time = 0.;
+                // self._flash_color = graphics::Color::WHITE;
+                // self._performing_coords.clear();
             },
             PlayingStateEnum::Settlement => {
             },
@@ -300,22 +324,25 @@ impl ProcedurePlaying {
         if self._performing_coords.len() == 0{
             return;
         }
-        
-        //绘制表现效果
+
+        let mut x_offset : f32;
+        let mut y_offset : f32;
+
         for coords in self._performing_coords.iter(){
+            x_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * coords.0 as f32;
+            y_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * coords.1 as f32;
             let mesh = Mesh::new_rectangle
-                (
+                ( 
                     ctx, 
                     graphics::DrawMode::fill(), 
                     graphics::Rect::new(
-                        (coords.0 as f32) + constant::BLOCK_INIT_START_COORD.0 + constant::BLOCK_COORD_SPACING as f32,
-                        (coords.1 as f32) + constant::BLOCK_INIT_START_COORD.1 + constant::BLOCK_COORD_SPACING as f32,
+                        constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.0 + x_offset,
+                        constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.1 + y_offset,
                         constant::BLOCK_SIZE as f32,
                         constant::BLOCK_SIZE as f32
                     ),
                     self._flash_color
                 );
-            
             if let Ok(mesh) = mesh{
                 canvas.draw(&mesh, DrawParam::default());
             }
@@ -356,11 +383,8 @@ impl ProcedurePlaying {
         let mut y_offset : f32;
 
         for i in 0..block_area.len(){
-            // x_offset = 0.0;
-            // y_offset = 0.0;
             x_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * i as f32;
             for j in 0..block_area[i].len(){
-                //绘制所有方块
                 let coord = block_area[i][j].get_coord();
                 let color = block_area[i][j].color();
                 y_offset = (constant::BLOCK_SIZE + constant::BLOCK_COORD_SPACING as f32) * j as f32;
@@ -413,12 +437,13 @@ impl ProcedurePlaying {
             _performing_coords : HashSet::new(),
             _performing_duration : 0.,
             _flash_time : 0.,
-            _flash_color : ggez::graphics::Color::from_rgb(1,1,1),
+            _flash_color : ggez::graphics::Color::WHITE,
             _border_positions : [min_position,
                                  Vec2::new(max_position.x, min_position.y),
                                  max_position,
                                  Vec2::new(min_position.x, max_position.y),
                                  min_position],
+            _is_paused : false
             
         };
     }
