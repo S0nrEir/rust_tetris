@@ -65,12 +65,37 @@ impl ProcedureMainUI {
             Vec2::new(constant::WINDOW_WIDTH / 2.0 + self._title_text_offset.x,constant::WINDOW_HEIGHT / 4.0 + self._title_text_offset.y)
         );
     }
+    
+    fn draw_operation_tip(&self,canvas: &mut Canvas){
+        let mut tip_text_1 = Text::new(format!("Enter - Start Game"));
+        tip_text_1.set_font(constant::FONT_NAME).set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0);
+        
+        let mut tip_text_2 = Text::new(format!("ESC - Exit Game"));
+        tip_text_2.set_font(constant::FONT_NAME).set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0);
+
+        canvas.draw(
+            &tip_text_1,
+            graphics::DrawParam::new()
+                .dest(Vec2::new(constant::WINDOW_WIDTH / 4.0 + 50.0, constant::WINDOW_HEIGHT * 3.0 / 4.0))
+                .color(graphics::Color::GREEN)
+        );
+
+        canvas.draw(
+            &tip_text_2,
+            graphics::DrawParam::new()
+                .dest(Vec2::new(constant::WINDOW_WIDTH / 4.0 + 50.0, constant::WINDOW_HEIGHT * 3.0 / 4.0 + 50.0))
+                .color(graphics::Color::GREEN)
+        );
+    }
 }
 
 impl Drawable for ProcedureMainUI {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_R0G0B0A1));
+        
         self.draw_title(&mut canvas);
+        self.draw_operation_tip(&mut canvas);
+        
         canvas.finish(ctx)?;
         return Ok(());
     }
