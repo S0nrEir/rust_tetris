@@ -33,12 +33,12 @@ impl Tetrimino{
 
         let gen_succ = true;
         let mut failed_msg: String = String::new();
-        // let mut rand = rand::thread_rng();
-        // let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
-        // let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
+        let mut rand = rand::thread_rng();
+        let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
+        let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
 
         //#todo随机生成方块类型，暂时使用Stick代替
-        let new_tetri_type = TetriminoTypeEnum::try_from(TetriminoTypeEnum::Stick);
+        // let new_tetri_type = TetriminoTypeEnum::try_from(TetriminoTypeEnum::Stick);
         if let Ok(tetri_type) = new_tetri_type{
             self.clear();
             self._tetri_type = tetri_type;

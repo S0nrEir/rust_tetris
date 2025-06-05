@@ -412,8 +412,8 @@ impl ProcedurePlaying {
                         graphics::Rect::new(
                             constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.0 + x_offset,
                             constant::BLOCK_SIZE + constant::BLOCK_INIT_START_COORD.1 + y_offset,
-                            constant::BLOCK_SIZE as f32,
-                            constant::BLOCK_SIZE as f32
+                            constant::BLOCK_SIZE,
+                            constant::BLOCK_SIZE
                         ),
                         *color
                     );
@@ -467,9 +467,9 @@ pub struct ProcedurePlayingParam{
 }
 
 impl ProcedurePlayingParam {
-    pub fn new() -> Self{
-        return ProcedurePlayingParam{};
-    }
+    // pub fn new() -> Self{
+    //     return ProcedurePlayingParam{};
+    // }
 }
 
 impl ProcedureParam for ProcedurePlayingParam{
