@@ -200,7 +200,7 @@ impl PlayField {
                 if close_wise {
                     curr_terimino.rotate(true);
                 }
-                else { 
+                else {
                     curr_terimino.rotate(false);
                 }
 
@@ -250,32 +250,6 @@ impl PlayField {
         let mut is_line_full = true;
         let mut cleared_lines = 0;
         let mut curr_col = 0;
-        // let raws_len = self._block_arr[0].len();
-
-        // for line in self._block_arr.iter_mut(){
-        //     for block in line.iter() {
-        //         if !block.is_occupied(){
-        //             is_line_full = false;
-        //             break;
-        //         }
-        //     }
-            
-        //     if is_line_full {
-        //         for block in line.iter_mut(){
-        //             block.set_occupied(0);
-        //             //#todo:不要使用clone
-        //             let coord = block.get_coord().clone();
-        //             cleared_cells.push(IVec2::new(coord.x,coord.y));
-        //         }
-        //         cleared_lines += 1;
-        //     }
-            
-        //     is_line_full = true;
-        //     line_index += 1;
-            
-        // }
-
-        // return  (cleared_lines as u8, cleared_cells);
         for j in 0..constant::PLAY_FIELD_RAWS{
             curr_col = j;
             for i in 0..constant::PLAY_FIELD_COLS{

@@ -41,7 +41,7 @@ pub const WINDOW_HEIGHT: f32 = 860.0;
 pub const PROC_MAIN_UI_ITEM_TEXT_SCALE : f32 = 60.0;
 
 //------------------------------color------------------------------
-pub const COLOR_RGB_BLACK : [f32;3] = [0.0 ,0.0 ,0.0];
+pub const COLOR_R0G0B0 : [f32;3] = [0.0 ,0.0 ,0.0];
 pub const COLOR_R1G1B1 : [f32;3] = [1.0 ,1.0 ,1.0];
 pub const COLOR_R1G1B1A1 : [f32;4]  = [1.0 ,1.0 ,1.0,1.0];
 pub const COLOR_R0G0B0A1 : [f32;4] = [0.0 ,0.0 ,0.0, 1.0];
@@ -50,11 +50,11 @@ pub const COLOR_ALPHA_0 : [f32;1] = [0.0];
 
 //------------------------------block------------------------------
 /// 游玩区域行数 / play field rows
-pub const PLAY_FIELD_RAWS : usize = 20;
+pub const PLAY_FIELD_RAWS : usize = 29;
 /// 游玩区域列数 / play field cols
-pub const PLAY_FIELD_COLS : usize = 11;
+pub const PLAY_FIELD_COLS : usize = 13;
 /// 单个方块的尺寸 / size of a single block
-pub const BLOCK_SIZE : f32 = 30.0;
+pub const BLOCK_SIZE : f32 = 20.0;
 /// 方块间的坐标间隔 / spacing between blocks
 pub const BLOCK_COORD_SPACING : u8 = 3;
 /// 方块放置区域初始化的坐标 / init start coordinate
@@ -62,10 +62,10 @@ pub const BLOCK_INIT_START_COORD: (f32, f32) = (153.0, 53.0);
 /// 一个方块最大的占用范围
 pub const BLOCK_MAX_OCCUPIED : usize = 4;
 /// 可处理输入的时间间隔 / Time interval for processing input
-pub  const INPUT_HANDLE_INTERVAL : f32 = 0.3;
+pub  const INPUT_HANDLE_INTERVAL : f32 = 0.1;
 
-pub const BORDER_MIN_POSITION : Vec2 = Vec2::new(150.0, 50.0);
-pub const BORDER_MAX_POSITION : Vec2 = Vec2::new(600.0, 750.0);
+pub const BORDER_MIN_POSITION : Vec2 = Vec2::new(165.0, 50.0);
+pub const BORDER_MAX_POSITION : Vec2 = Vec2::new(480.0, 750.0);
 
 /// 演出效果时间 / Performing effect time 
 pub const PLAYFIELD_PERFORMING_INTERVAL : f32 = 3.;

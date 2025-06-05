@@ -1,6 +1,5 @@
 ﻿use std::any::Any;
 use std::collections::{HashSet};
-use std::fmt::format;
 use colored::Color;
 use ggez::{Context, GameResult, graphics};
 use ggez::glam::{IVec2, Vec2};
