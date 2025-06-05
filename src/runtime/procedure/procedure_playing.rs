@@ -225,6 +225,7 @@ impl TState for ProcedurePlaying{
                     self._flash_time = 0.;
                     self._flash_color = graphics::Color::WHITE;
                     self._performing_coords.clear();
+                    self._play_field.fall_all_floating_blocks();
                     self._play_field.generate_new_tetrimino();
                     self._flash_color = graphics::Color::WHITE;
                     self.switch_playing_state(PlayingStateEnum::Falling);
@@ -232,9 +233,9 @@ impl TState for ProcedurePlaying{
                 else{
                     self._flash_time += delta_sec;
                     if self._flash_time >= constant::PLAYFIELD_FLASHING_INTERVAL{
-                        self._flash_color.r = self._flash_color.r - 0.2;
-                        self._flash_color.g = self._flash_color.g - 0.2;
-                        self._flash_color.b = self._flash_color.b - 0.2;
+                        self._flash_color.r = self._flash_color.r - 0.3;
+                        self._flash_color.g = self._flash_color.g - 0.3;
+                        self._flash_color.b = self._flash_color.b - 0.3;
                         self._flash_time = 0.;
                     }
                 }

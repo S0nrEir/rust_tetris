@@ -18,6 +18,31 @@ pub struct PlayField {
 
 //------------------------------instance function------------------------------
 impl PlayField {
+
+    /// 将所有悬空的方块下落到底部 / Make all floating blocks fall to the bottom
+    pub fn fall_all_floating_blocks(&mut self) {
+        
+        let mut has_changes = true;
+        // 重复直到没有方块可以继续下落
+        while has_changes {
+            has_changes = false;
+            for j in (0..constant::PLAY_FIELD_RAWS-1).rev() {
+                for i in 0..constant::PLAY_FIELD_COLS {
+                    if self._block_arr[i][j].is_occupied() && !self._block_arr[i][j+1].is_occupied() {
+                        let color = self._block_arr[i][j].color().clone();
+
+                        self._block_arr[i][j+1].set_occupied(1);
+                        self._block_arr[i][j+1].set_color(color);
+
+                        self._block_arr[i][j].set_occupied(0);
+                        self._block_arr[i][j].set_color(Color::BLACK);
+
+                        has_changes = true;
+                    }
+                }
+            }
+        }
+    }
     
     /// 获取方块区域 / get block area
     pub fn get_block_area(&self) -> & [[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS]{
