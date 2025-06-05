@@ -64,6 +64,7 @@ impl Drawable for ProcedurePlaying {
             },
             _ => {}
         }
+        
         self.draw_score(ctx,&mut canvas);
         self.draw_border(ctx, &mut canvas);
         self.draw_play_field(ctx,&mut canvas);

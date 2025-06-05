@@ -20,7 +20,9 @@ pub struct ProcedureMainUI{
     _selected_item_index : i8,
     _param               : Option<ProcedureMainUIParam>,
     _title_text_offset   : Vec2,
-    _start_game_flag     : bool
+    _start_game_flag     : bool,
+    _tips_text_offset    : Vec2,
+    _blink_timer         : f32,
 }
 
 impl ProcedureMainUI {
@@ -30,26 +32,28 @@ impl ProcedureMainUI {
             _selected_item_index : 0,
             _param               : None,
             _title_text_offset   : Vec2::new(-100., 0.),
-            _start_game_flag     : false
+            _start_game_flag     : false,
+            _tips_text_offset    : Vec2::new(constant::WINDOW_WIDTH / 4.0 + 70.0, constant::WINDOW_HEIGHT * 3.0 / 4.0),
+            _blink_timer         : 0.0,
         };
     }
     
     /// 设置当前的选择索引 / set the current selection index
     /// #Arguments
     /// * `move_offset` - 索引偏移 / index offset
-    fn select_item(&mut self, move_offset:i8) {
-        let new_index = self._selected_item_index + move_offset;
-        
-        if new_index <= 0 {
-            self._selected_item_index = 0;
-        }
-        else if new_index >= MAX_ITEM_COUNT {
-            self._selected_item_index = 1;
-        }
-        else {
-            self._selected_item_index = new_index;
-        }
-    }
+    // fn select_item(&mut self, move_offset:i8) {
+    //     let new_index = self._selected_item_index + move_offset;
+    //     
+    //     if new_index <= 0 {
+    //         self._selected_item_index = 0;
+    //     }
+    //     else if new_index >= MAX_ITEM_COUNT {
+    //         self._selected_item_index = 1;
+    //     }
+    //     else {
+    //         self._selected_item_index = new_index;
+    //     }
+    // }
     
     /// 开始游戏 / start game
     fn start_game(&mut self){
@@ -73,18 +77,27 @@ impl ProcedureMainUI {
         let mut tip_text_2 = Text::new(format!("ESC - Exit Game"));
         tip_text_2.set_font(constant::FONT_NAME).set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0);
 
+        let mut tip_text_3 = Text::new(format!("up - rotate\ndown - move down\nleft/right - move"));
+        
         canvas.draw(
             &tip_text_1,
             graphics::DrawParam::new()
-                .dest(Vec2::new(constant::WINDOW_WIDTH / 4.0 + 50.0, constant::WINDOW_HEIGHT * 3.0 / 4.0))
+                .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y))
                 .color(graphics::Color::GREEN)
         );
 
         canvas.draw(
             &tip_text_2,
             graphics::DrawParam::new()
-                .dest(Vec2::new(constant::WINDOW_WIDTH / 4.0 + 50.0, constant::WINDOW_HEIGHT * 3.0 / 4.0 + 50.0))
+                .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y + 50.0))
                 .color(graphics::Color::GREEN)
+        );
+        
+        canvas.draw(
+            &tip_text_3,
+            graphics::DrawParam::new()
+                .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y - 300.0))
+                .color(graphics::Color::CYAN)
         );
     }
 }
@@ -103,6 +116,10 @@ impl Drawable for ProcedureMainUI {
 
 impl Tickable for ProcedureMainUI {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
+        self._blink_timer += delta_time;
+        if self._blink_timer > std::f32::consts::PI * 2.0 {
+            self._blink_timer -= std::f32::consts::PI * 2.0;
+        }
     }
 }
 
@@ -126,12 +143,12 @@ impl TState for ProcedureMainUI{
             KeyCode::Return => {
                 self.start_game();
             },
-            KeyCode::Up => {
-                self.select_item(1);
-            },
-            KeyCode::Down => {
-                self.select_item(-1);
-            },
+            // KeyCode::Up => {
+            //     self.select_item(1);
+            // },
+            // KeyCode::Down => {
+            //     self.select_item(-1);
+            // },
             KeyCode::Escape => {
                 ctx.request_quit();
             }
