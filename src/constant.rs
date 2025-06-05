@@ -66,9 +66,12 @@ pub  const INPUT_HANDLE_INTERVAL : f32 = 0.1;
 
 pub const BORDER_MIN_POSITION : Vec2 = Vec2::new(165.0, 50.0);
 pub const BORDER_MAX_POSITION : Vec2 = Vec2::new(480.0, 750.0);
-
 /// 演出效果时间 / Performing effect time 
 pub const PLAYFIELD_PERFORMING_INTERVAL : f32 = 3.;
+/// 每行消除的分数 / Score for each line cleared
+pub const SCORE_PER_LINE : u32 = 100;
+
+pub const SCORE_TEXT_POSITION : Vec2 = Vec2::new(50.0, 100.0);
 
 pub const PLAYFIELD_FLASHING_INTERVAL : f32 = 1.;
 

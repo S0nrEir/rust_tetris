@@ -42,10 +42,8 @@ pub  struct ProcedurePlaying{
     _flash_time : f32,
     /// 闪烁颜色 / flash color
     _flash_color : graphics::Color,
-    
     /// 边框屏幕坐标位置 / border screen positions
     _border_positions : [Vec2;5],
-
     ///调试相关 / debug related
     _is_paused : bool,
 }
@@ -66,7 +64,7 @@ impl Drawable for ProcedurePlaying {
             },
             _ => {}
         }
-        
+        self.draw_score(ctx,&mut canvas);
         self.draw_border(ctx, &mut canvas);
         self.draw_play_field(ctx,&mut canvas);
         self.draw_playing_info(ctx, &mut canvas);
@@ -96,9 +94,11 @@ impl Tickable for ProcedurePlaying {
             if cleared_line_cnt_and_coords.0 != 0 {
                 self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
                 self.switch_playing_state(PlayingStateEnum::Performing);
+                self._player_data.add_score(constant::SCORE_PER_LINE * cleared_line_cnt_and_coords.0 as u32);
             }
             //没消除，生成新的
             else{
+                // self._play_field.generate_new_tetrimino();
             }
         }
         //下落不成功，生成新的
@@ -160,6 +160,7 @@ impl TState for ProcedurePlaying{
                                 else{
                                     self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
                                     self.switch_playing_state(PlayingStateEnum::Performing);
+                                    self._player_data.add_score(constant::SCORE_PER_LINE * cleared_line_cnt_and_coords.0 as u32);
                                 }
                             }
                             //未到达顶部
@@ -182,6 +183,7 @@ impl TState for ProcedurePlaying{
                                 else{
                                     self.add_to_performing_coords(cleared_line_cnt_and_coords.1);
                                     self.switch_playing_state(PlayingStateEnum::Performing);
+                                    self._player_data.add_score(constant::SCORE_PER_LINE * cleared_line_cnt_and_coords.0 as u32);
                                 }
                             }
                         },//end match down
@@ -352,7 +354,7 @@ impl ProcedurePlaying {
 
     /// 绘制游玩状态 / draw playing state
     fn draw_playing_state(&mut self,ctx:&mut Context,canvas:&mut Canvas){
-        let mut text = ggez::graphics::Text::new(format!("Playing State: {}", self._curr_playing_state.as_str()));
+        let mut text = graphics::Text::new(format!("Playing State: {}", self._curr_playing_state.as_str()));
         text.set_font(constant::FONT_NAME);
         text.set_scale(15.0);
         canvas.draw(
@@ -361,6 +363,16 @@ impl ProcedurePlaying {
         );
     }
 
+    fn draw_score(&mut self,ctx:&mut Context,canvas:&mut Canvas){
+        let mut score_text = graphics::Text::new(format!("Score : {}", self._player_data.get_score()));
+        score_text.set_font(constant::FONT_NAME);
+        score_text.set_scale(15.0);
+        canvas.draw(
+            &score_text,
+            DrawParam::default().dest(constant::SCORE_TEXT_POSITION).color(ggez::graphics::Color::CYAN)
+        );
+    }
+    
     /// 绘制边框 / draw border
     fn draw_border(&mut self,ctx:&mut Context,canvas:&mut Canvas){
 
