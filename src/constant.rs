@@ -87,10 +87,10 @@ pub const BLOCK_COLOR_GEN_SEQUENCE : [TetriminoColorEnum;7] = [
 ];
 
 pub const TETRI_OFFSET_RIGHT_SNAKE : [IVec2;4] = [
-    IVec2::new(1,1),
-    IVec2::new(0,0),
-    IVec2::new(-1,1),
-    IVec2::new(-2,0)
+    IVec2::new(0,-1),
+    IVec2::new(-1,0),
+    IVec2::new(0,1),
+    IVec2::new(-1,2)
 ];
 
 pub const TETRI_OFFSET_LEFT_SNAKE : [IVec2;4] = [

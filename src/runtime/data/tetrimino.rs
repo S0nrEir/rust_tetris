@@ -79,22 +79,18 @@ impl Tetrimino{
             self._curr_angle = if self._curr_angle == 0 { 270 } else { self._curr_angle - 90 };
         }
         
-        let mut is_negate = 0;
+        let is_negate = self.negate(&self._tetri_type,clock_wise, self._curr_angle, old_angle);
         let tetri_offsets: &[IVec2];
-
         match self._tetri_type {
             TetriminoTypeEnum::RightSnake =>{
-                is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
                 tetri_offsets = &constant::TETRI_OFFSET_RIGHT_SNAKE;
             }//right sanke
 
             TetriminoTypeEnum::LeftSnake => {
-                is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
                 tetri_offsets = &constant::TETRI_OFFSET_LEFT_SNAKE;
-            }
+            }//left snake
 
             TetriminoTypeEnum::RightGun => {
-                
                 match old_angle {
                     0 => {
                         tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_RIGHT_GUN_0_90} else {&constant::TETRI_OFFSET_RIGHT_GUN_270_0};
@@ -140,16 +136,16 @@ impl Tetrimino{
             TetriminoTypeEnum::T => {
                 match  old_angle {
                     0 => {
-                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_0_90} else {&constant::TETRI_OFFSET_LEFT_GUN_270_0};
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_T_0_90} else {&constant::TETRI_OFFSET_T_270_0};
                     }
                     90 => {
-                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_90_180} else {&constant::TETRI_OFFSET_LEFT_GUN_0_90};
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_T_90_180} else {&constant::TETRI_OFFSET_T_0_90};
                     }
                     180 => {
-                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_180_270} else {&constant::TETRI_OFFSET_LEFT_GUN_90_180};
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_T_180_270} else {&constant::TETRI_OFFSET_T_90_180};
                     }
                     270 => {
-                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_LEFT_GUN_270_0} else {&constant::TETRI_OFFSET_LEFT_GUN_180_270};
+                        tetri_offsets = if clock_wise {&constant::TETRI_OFFSET_T_270_0} else {&constant::TETRI_OFFSET_T_180_270};
                     }
                     _ => {
                         log("Tetrimino.rs",&format!("invalid old_angle, old_angle: {} , tetri type : {:?}", old_angle,self._tetri_type),LogLevelEnum::Fatal);
@@ -159,7 +155,6 @@ impl Tetrimino{
             }//T
 
             TetriminoTypeEnum::Stick => {
-                is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
                 tetri_offsets = &constant::TETRI_OFFSET_STICK;
             }//stick
 
@@ -181,6 +176,25 @@ impl Tetrimino{
             i += 1;
         }
         return true;
+    }
+    
+    /// 获取计算旋转时坐标的偏移量 / get the offset for calculating the coordinates when rotating
+    /// #Arguments
+    /// * tetri_type - 方块类型 / block type
+    /// * clock_wise - 是否顺时针旋转 / whether to rotate clockwise
+    /// * curr_angle - 当前角度 / current angle
+    /// * old_angle - 旧角度 / old angle
+    /// #Return
+    /// * 返回偏移量 / return the offset
+    fn negate(&self,tetri_type : &TetriminoTypeEnum , clock_wise : bool , curr_angle : u16 , old_angle : u16) -> i32{
+        match tetri_type {
+            TetriminoTypeEnum::RightSnake | TetriminoTypeEnum::LeftSnake =>{
+                return if curr_angle == 90 || curr_angle == 270 {1} else {-1};
+            }
+            _ => {
+                return if clock_wise {1} else {-1};
+            }
+        }
     }
     
     /// 更新方块在grid中的坐标位置 / update the coordinate position of the block in the grid
@@ -281,7 +295,7 @@ impl Tetrimino{
                 minos.push(ivec2(3,0));
                 minos.push(ivec2(4,0));
                 minos.push(ivec2(5,0));
-                minos.push(ivec2(0,3));
+                minos.push(ivec2(3,1));
             }
             TetriminoTypeEnum::Square => {
                 minos.push(ivec2(0,3));
@@ -305,7 +319,7 @@ impl Tetrimino{
                 minos.push(ivec2(3,0));
                 minos.push(ivec2(4,0));
                 minos.push(ivec2(5,0));
-                minos.push(ivec2(3,1));
+                minos.push(ivec2(4,1));
             }
             _ => {
                     log("Tetrimino.rs","set_spotted_minos() ---> tetri enum is none",LogLevelEnum::Fatal);
@@ -333,7 +347,7 @@ impl Tetrimino{
                         minos.push(ivec2(3,0));
                         minos.push(ivec2(4,0));
                         minos.push(ivec2(5,0));
-                        minos.push(ivec2(0,3));
+                        minos.push(ivec2(3,1));
                     }
                     TetriminoTypeEnum::Square => {
                         minos.push(ivec2(0,3));
@@ -357,7 +371,7 @@ impl Tetrimino{
                         minos.push(ivec2(3,0));
                         minos.push(ivec2(4,0));
                         minos.push(ivec2(5,0));
-                        minos.push(ivec2(3,1));
+                        minos.push(ivec2(4,1));
                     }
             _ => {
                         log("Tetrimino.rs","get_spotted_minos() ---> tetri enum is none",LogLevelEnum::Fatal);
