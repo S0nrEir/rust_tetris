@@ -187,7 +187,7 @@ pub const TETRI_OFFSET_T_270_0 : [IVec2;4] = [
 
 pub const TETRI_OFFSET_STICK : [IVec2;4] = [
     IVec2::new(0,0),
-    IVec2::new(-1,1),
-    IVec2::new(-2,2),
-    IVec2::new(-3,3)
+    IVec2::new(1,-1),
+    IVec2::new(2,-2),
+    IVec2::new(3,-3)
 ];

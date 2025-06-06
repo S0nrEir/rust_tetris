@@ -31,7 +31,7 @@ impl Tetrimino{
     /// * 返回一个元组，第一个值表示生成是否成功，第二个值表示失败原因 / return a tuple, the first value indicates whether the generation was successful, and the second value indicates the reason for failure
     pub fn gen_as_new(&mut self,blocl_area:&[[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS]) -> (bool,String) {
 
-        let gen_succ = true;
+        let mut gen_succ = true;
         let mut failed_msg: String = String::new();
         let mut rand = rand::thread_rng();
         let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
@@ -42,8 +42,8 @@ impl Tetrimino{
             self._tetri_type = tetri_type;
             Self::set_spotted_minos( tetri_type, &mut self._minos );
             let detected_collision = PlayField::detect_tetrimino_collision(&blocl_area,&self._minos);
-            
-            gen_succ != !detected_collision;
+            self._color_index = tetri_type as usize;
+            gen_succ |= detected_collision;
             if detected_collision {
                 failed_msg = format!("gen_as_new() ---> tetri type : {:?} , collision detected",self._tetri_type);
             }
@@ -191,6 +191,9 @@ impl Tetrimino{
             TetriminoTypeEnum::RightSnake | TetriminoTypeEnum::LeftSnake =>{
                 return if curr_angle == 90 || curr_angle == 270 {1} else {-1};
             }
+            TetriminoTypeEnum::Stick => {
+                return if curr_angle == 90 || curr_angle == 270 {1} else {-1};
+            }
             _ => {
                 return if clock_wise {1} else {-1};
             }
@@ -331,7 +334,7 @@ impl Tetrimino{
     fn get_spotted_minos(tetri_type : TetriminoTypeEnum) -> Vec<IVec2>{
         let mut minos : Vec<IVec2> = Vec::new();
         match tetri_type {
-            TetriminoTypeEnum::Stick => {
+                    TetriminoTypeEnum::Stick => {
                         minos.push(ivec2(4,0));
                         minos.push(ivec2(4,1));
                         minos.push(ivec2(4,2));
