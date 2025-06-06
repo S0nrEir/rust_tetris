@@ -37,8 +37,6 @@ impl Tetrimino{
         let rand_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
         let new_tetri_type = TetriminoTypeEnum::try_from(rand_type);
 
-        //#todo随机生成方块类型，暂时使用Stick代替
-        // let new_tetri_type = TetriminoTypeEnum::try_from(TetriminoTypeEnum::Stick);
         if let Ok(tetri_type) = new_tetri_type{
             self.clear();
             self._tetri_type = tetri_type;
@@ -88,23 +86,11 @@ impl Tetrimino{
             TetriminoTypeEnum::RightSnake =>{
                 is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
                 tetri_offsets = &constant::TETRI_OFFSET_RIGHT_SNAKE;
-                // let mut i : usize = 0;
-                //     for offset in constant::TETRI_OFFSET_RIGHT_SNAKE {
-                //         self._minos[i].x = offset.x * is_negate + self._minos[i].x;
-                //         self._minos[i].y = offset.y * is_negate + self._minos[i].y;
-                //         i += 1;
-                //     }
             }//right sanke
 
             TetriminoTypeEnum::LeftSnake => {
                 is_negate = if self._curr_angle == 0 || self._curr_angle == 180 {1} else {-1};
                 tetri_offsets = &constant::TETRI_OFFSET_LEFT_SNAKE;
-                // let mut i : usize = 0;
-                //     for offset in constant::TETRI_OFFSET_LEFT_SNAKE {
-                //         self._minos[i].x = offset.x * is_negate + self._minos[i].x;
-                //         self._minos[i].y = offset.y * is_negate + self._minos[i].y;
-                //         i += 1;
-                //     }
             }
 
             TetriminoTypeEnum::RightGun => {
@@ -286,16 +272,16 @@ impl Tetrimino{
                 minos.push(ivec2(4,3));
             }
             TetriminoTypeEnum::LeftGun => {
-                minos.push(ivec2(0,3));
-                minos.push(ivec2(0,4));
-                minos.push(ivec2(0,5));
-                minos.push(ivec2(1,5));
+                minos.push(ivec2(3,0));
+                minos.push(ivec2(4,0));
+                minos.push(ivec2(5,0));
+                minos.push(ivec2(5,1));
             }
             TetriminoTypeEnum::RightGun => {
+                minos.push(ivec2(3,0));
+                minos.push(ivec2(4,0));
+                minos.push(ivec2(5,0));
                 minos.push(ivec2(0,3));
-                minos.push(ivec2(0,4));
-                minos.push(ivec2(0,5));
-                minos.push(ivec2(1,0));
             }
             TetriminoTypeEnum::Square => {
                 minos.push(ivec2(0,3));
@@ -304,22 +290,22 @@ impl Tetrimino{
                 minos.push(ivec2(1,4));
             }
             TetriminoTypeEnum::RightSnake => {
-                minos.push(ivec2(1,3));
-                minos.push(ivec2(1,4));
-                minos.push(ivec2(0,4));
-                minos.push(ivec2(0,5));
+                minos.push(ivec2(3,1));
+                minos.push(ivec2(4,1));
+                minos.push(ivec2(4,0));
+                minos.push(ivec2(5,0));
             }
             TetriminoTypeEnum::LeftSnake => {
-                minos.push(ivec2(0,3));
-                minos.push(ivec2(0,4));
-                minos.push(ivec2(1,4));
-                minos.push(ivec2(1,5));
+                minos.push(ivec2(3,0));
+                minos.push(ivec2(4,0));
+                minos.push(ivec2(4,1));
+                minos.push(ivec2(5,1));
             }
             TetriminoTypeEnum::T => {
-                minos.push(ivec2(0,3));
-                minos.push(ivec2(0,4));
-                minos.push(ivec2(0,5));
-                minos.push(ivec2(1,3));
+                minos.push(ivec2(3,0));
+                minos.push(ivec2(4,0));
+                minos.push(ivec2(5,0));
+                minos.push(ivec2(3,1));
             }
             _ => {
                     log("Tetrimino.rs","set_spotted_minos() ---> tetri enum is none",LogLevelEnum::Fatal);
@@ -337,41 +323,41 @@ impl Tetrimino{
                         minos.push(ivec2(4,2));
                         minos.push(ivec2(4,3));
                     }
-            TetriminoTypeEnum::LeftGun => {
-                        minos.push(ivec2(5,1));
-                        minos.push(ivec2(5,0));
-                        minos.push(ivec2(4,0));
+                    TetriminoTypeEnum::LeftGun => {
                         minos.push(ivec2(3,0));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(5,0));
+                        minos.push(ivec2(5,1));
                     }
-            TetriminoTypeEnum::RightGun => {
-                        minos.push(ivec2(1,0));
+                    TetriminoTypeEnum::RightGun => {
+                        minos.push(ivec2(3,0));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(5,0));
                         minos.push(ivec2(0,3));
-                        minos.push(ivec2(0,4));
-                        minos.push(ivec2(0,5));
                     }
-            TetriminoTypeEnum::Square => {
+                    TetriminoTypeEnum::Square => {
                         minos.push(ivec2(0,3));
                         minos.push(ivec2(0,4));
                         minos.push(ivec2(1,3));
                         minos.push(ivec2(1,4));
                     }
-            TetriminoTypeEnum::RightSnake => {
-                        minos.push(ivec2(1,3));
-                        minos.push(ivec2(1,4));
-                        minos.push(ivec2(0,4));
-                        minos.push(ivec2(0,5));
+                    TetriminoTypeEnum::RightSnake => {
+                        minos.push(ivec2(3,1));
+                        minos.push(ivec2(4,1));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(5,0));
                     }
-            TetriminoTypeEnum::LeftSnake => {
-                        minos.push(ivec2(0,3));
-                        minos.push(ivec2(0,4));
-                        minos.push(ivec2(1,4));
-                        minos.push(ivec2(1,5));
+                    TetriminoTypeEnum::LeftSnake => {
+                        minos.push(ivec2(3,0));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(4,1));
+                        minos.push(ivec2(5,1));
                     }
-            TetriminoTypeEnum::T => {
-                        minos.push(ivec2(0,3));
-                        minos.push(ivec2(0,4));
-                        minos.push(ivec2(0,5));
-                        minos.push(ivec2(1,3));
+                    TetriminoTypeEnum::T => {
+                        minos.push(ivec2(3,0));
+                        minos.push(ivec2(4,0));
+                        minos.push(ivec2(5,0));
+                        minos.push(ivec2(3,1));
                     }
             _ => {
                         log("Tetrimino.rs","get_spotted_minos() ---> tetri enum is none",LogLevelEnum::Fatal);

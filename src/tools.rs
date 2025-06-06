@@ -76,9 +76,6 @@ pub mod tetri_tools{
         let mut rand = rand::thread_rng();
         let rand_teri_type = rand.gen_range(TetriminoTypeEnum::get_min_max_range());
         let teri =  Tetrimino::new(rand_teri_type);
-        
-        //todo:为了调试，暂时只生成stick类型的
-        // let rand_teri_type = TetriminoTypeEnum::Stick as isize;
         let teri =  Tetrimino::new(rand_teri_type);
         return teri;
     }
