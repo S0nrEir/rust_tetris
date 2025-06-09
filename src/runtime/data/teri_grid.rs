@@ -65,9 +65,9 @@ impl TetriGridCell{
     
     /// 设置网格坐标 / set grid coordinates
     #[inline]
-    pub fn set_coord(&mut self,x:i32,y:i32){
-        self._coord = IVec2::new(x,y);
-    }
+    // pub fn set_coord(&mut self,x:i32,y:i32){
+    //     self._coord = IVec2::new(x,y);
+    // }
     
     /// 设置区块的世界坐标 / set the world coordinates of the block
     #[inline]

@@ -81,8 +81,8 @@ impl TState for ProcedureTestDrawBlock{
         temp.push(3);
     }
 
-    fn on_update(&mut self,ctx:&mut Context, key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
-        return Some(ProcedureEnum::TestDrawBlock);
+    fn on_update(&mut self,ctx:&mut Context, key_code: Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>){
+        return (Some(ProcedureEnum::TestDrawBlock),None);
         
     }
 
@@ -98,7 +98,7 @@ impl TState for ProcedureTestDrawBlock{
 impl Drawable for ProcedureTestDrawBlock {
     fn on_draw(&mut self, ctx: &mut Context) -> GameResult {
 
-        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_RGBA_BLACK_1));
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_R0G0B0A1));
         //canvas坐标起始从左上角开始
         // self.draw_text(&mut canvas);
         

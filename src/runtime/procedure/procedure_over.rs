@@ -30,9 +30,8 @@ impl TState for ProcedureOver{
         println!("ProcedureOver enter");
     }
 
-    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
-        // println!("ProcedureOver update");
-        return Some(ProcedureEnum::Over);
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>){
+        return (Some(ProcedureEnum::Over),None);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -53,6 +52,7 @@ impl ProcedureOver {
 
 #[derive(Debug,)]
 pub struct ProcedureOverParam{
+    pub _score : u32,
 }
 
 impl ProcedureParam for ProcedureOverParam{

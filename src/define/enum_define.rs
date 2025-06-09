@@ -86,6 +86,7 @@ pub enum TetriminoColorEnum{
     Yellow,
     Purple,
     Cyan,
+    White,
 }
 
 /// 游玩区域方块颜色 / Play field block color

@@ -52,12 +52,6 @@ impl ProcedureComponent {
                 },
             };
         }
-        // procedure_component.set_default_procedure(entry_procedure_index);
-        #[cfg(feature = "debug_log")]
-        {
-            let all_procedure = procedure_component.all_procedure_name();
-            log(&procedure_component,&format!("all procedure : {:?}",all_procedure),LogLevelEnum::Info);
-        }
         
         return procedure_component;
     }
@@ -95,10 +89,12 @@ impl ProcedureComponent {
     /// * `bool` - 是否添加成功 / whether add successfully
     pub fn add_new_procedure(&mut self,procedure_enum:ProcedureEnum) -> bool{
         let enum_type:i32 = procedure_enum.into();
+        
         if self._procedure_map.contains_key(&enum_type) {
             log(self,"procedure already exists",LogLevelEnum::Info);
             return false;
         }
+        
         let mut insert_succ : Option<Box<dyn TState>> = None;
         match procedure_enum {
             ProcedureEnum::MainUI => {
@@ -131,11 +127,9 @@ impl ProcedureComponent {
                   leave_param:Option<Box<dyn ProcedureParam>>) -> bool{
 
         //离开原有流程，并且将其保存起来 / leave the original procedure and save it
-        //ps 对于第一次理解所有权概念的人来说真是折磨!! / ps for those who first understand the concept of ownership, it is really torture!!
         if let Some(mut procedure_to_leave) = mem::replace(&mut self._current_procedure,None){
             let procedure_enum = procedure_to_leave.get_state();
             procedure_to_leave.on_leave(leave_param);
-            //如果k已经存在则更新并返回旧值，如果是全新的则返回none
             match self._procedure_map.insert(procedure_enum.into(), procedure_to_leave) { 
                 Some(_) => {
                     log("procedure.rs",&format!("switch() ---> contains old value while leave,procedure enum:{:?}",procedure_enum),LogLevelEnum::Error);
@@ -145,20 +139,17 @@ impl ProcedureComponent {
             }
         }
         
-        //获取新流程并进入 / get new procedure and enter
         let enum_type:i32 = procedure_to_switch.into();
-        //remove返回被移除的值并且获取所有权，如果不存在返回none
         return if let Some(new_procedure) = self._procedure_map.remove(&enum_type) {
             self._current_procedure = Some(new_procedure);
             let procedure_ref = self._current_procedure.as_mut().unwrap();
             procedure_ref.on_enter(enter_param);
-            // self._current_procedure.as_ref().unwrap().on_enter(Some(Box::new(ProcedureMainUI::new())));
-            true
+            return true;
         }
         else {
             let err_msg = &format!("procedure not found , procedure:{}", enum_type);
             log(self, err_msg, LogLevelEnum::Error);
-            false
+            return false;
         }
     }
     
@@ -181,9 +172,6 @@ impl ProcedureComponent {
         values.for_each(|value|{
             procedure_name_list.push(String::from(value.get_state().as_str()));
         });
-        // for (key,value) in self._procedure_map.iter(){
-        //     procedure_name_list.push(String::from(value.get_state().as_str()));
-        // }
         return procedure_name_list;
     }
     
@@ -200,24 +188,13 @@ impl ProcedureComponent {
     }
 }
 
-// impl Tickable for ProcedureComponent {
-//     fn on_tick(&mut self,ctx:&mut Context,delta_time:f32,interval:f32) {
-//         if let Some(curr_procedure) = &mut self._current_procedure{
-//             curr_procedure.on_tick(ctx,delta_time,interval);
-//         }
-//         #[cfg(feature = "debug_log")]{
-//             crate::tools::logger::log_info_colored("ProcedureComponent.on_tick()", &format!("calling..."), Color::Cyan);
-//         }
-//     }
-// }
-
 impl Updatable for ProcedureComponent {
-    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum> {
+    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>) {
         if let Some(curr_procedure) = &mut self._current_procedure{
             return curr_procedure.on_update(ctx,key_code,delta_sec);
         }
         else { 
-            return None;
+            return (None,None);
         }
     }
 }

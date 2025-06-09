@@ -12,7 +12,7 @@ use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBloc
 use crate::t_state::TState;
 use crate::t_updatable::{Updatable};
 use crate::tools::logger::{log, LogLevelEnum};
-use crate::tools::logger::LogLevelEnum::Fatal;
+use crate::tools::logger::LogLevelEnum::{Fatal, Warning};
 
 /// 游戏的主入口 / Main entry of the game
 pub struct App {
@@ -44,7 +44,7 @@ impl App {
                 if let Ok(mut app) = App::new(&mut context,procedure_list){
                     app._procedure_component.switch(ProcedureEnum::TestDrawBlock,Box::new(ProcedureTestDrawBlockParam::new()),None);
                     event::run(context, event_loop,app);
-                }
+                 }
                 return;
             }
             
@@ -113,21 +113,26 @@ impl App {
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
         let old_procedure = self._procedure_component.curr_procedure();
         let new_procedure = self._procedure_component.on_update(ctx,key_code,delta_time as f32);
-        if !old_procedure.is_none() && !new_procedure.is_none() {
-            let old_procedure = old_procedure.unwrap();
-            let new_procedure = new_procedure.unwrap();
-            if old_procedure != new_procedure {
-                self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
+        
+        if !old_procedure.is_none() && !new_procedure.0.is_none() {
+            if old_procedure.unwrap() != new_procedure.0.unwrap() {
+                self._procedure_component.switch(new_procedure.0.unwrap() , new_procedure.1.unwrap() , None );
             }
         }
         else{
-            log("app.rs","main_update() ---> return a none procedure enum!",Fatal);
-            panic!();
+            log("app.rs","current procedure is none",Warning);
         }
         
-        #[cfg(feature = "debug_log")]{
-            
-        }
+        // if !old_procedure.is_none() && !new_procedure.0.is_none() {
+        //     let old_procedure = old_procedure.unwrap();
+        //     let new_procedure = new_procedure.0.unwrap();
+        //     if old_procedure != new_procedure {
+        //         self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
+        //     }
+        // }
+        // else{
+        //     log("app.rs","current procedure is none",Warning);
+        // }
     }
 }
 
@@ -168,13 +173,20 @@ impl event::EventHandler<ggez::GameError> for App {
     /// * `GameResult` - 处理结果 / Processing result
     fn key_down_event(&mut self, _ctx: &mut Context, input: KeyInput, repeat: bool) -> GameResult {
         self._input_component.set_curr_input_key(input.keycode);
-        
-        #[cfg(feature = "debug_log")]{
-            log(&self,&format!("Key pressed: keycode {:?},  repeat: {}", input.keycode, repeat),LogLevelEnum::Info);
-        }
-        
         return Ok(());
     }
+    
+    /// 键盘松开输入处理 / Keyboard up input processing
+    /// # Arguments
+    /// * `ctx` - 上下文对象 / Context object
+    /// * `input` - 键盘输入 / Keyboard input
+    /// * # Return
+    /// * `GameResult` - 处理结果 / Processing result
+    fn key_up_event(&mut self, _ctx: &mut Context, _input: KeyInput) -> Result<(), ggez::GameError> {
+        self._input_component.set_curr_input_key(None);
+        return Ok(());
+    }
+
 }
 
 //-------------impl Debug----------------
