@@ -113,6 +113,7 @@ impl App {
     fn main_update(&mut self, ctx: &mut Context, key_code : Option<KeyCode>, delta_time:f64){
         let old_procedure = self._procedure_component.curr_procedure();
         let new_procedure = self._procedure_component.on_update(ctx,key_code,delta_time as f32);
+        
         if !old_procedure.is_none() && !new_procedure.is_none() {
             let old_procedure = old_procedure.unwrap();
             let new_procedure = new_procedure.unwrap();
@@ -122,7 +123,6 @@ impl App {
         }
         else{
             log("app.rs","current procedure is none",Warning);
-            //panic!();
         }
     }
 }

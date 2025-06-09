@@ -1,11 +1,11 @@
-﻿use std::any::{Any, TypeId};
+﻿use std::any::{Any};
 use std::fmt::Debug;
-use colored::Color;
 use ggez::{Context, GameResult, graphics};
 use ggez::glam::Vec2;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
-use ggez::input::keyboard::KeyCode;
+use crate::tools::logger::{log, LogLevelEnum};
+use ggez::input::keyboard::{KeyCode, KeyInput};
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::{Drawable, Tickable};
 use ggez::graphics::{Canvas, Text};
@@ -23,6 +23,9 @@ pub struct ProcedureMainUI{
     _start_game_flag     : bool,
     _tips_text_offset    : Vec2,
     _blink_timer         : f32,
+    _normal_mode         : bool,
+    _option_text_scale   : f32,
+    _input_interval      : f32,
 }
 
 impl ProcedureMainUI {
@@ -35,29 +38,47 @@ impl ProcedureMainUI {
             _start_game_flag     : false,
             _tips_text_offset    : Vec2::new(constant::WINDOW_WIDTH / 4.0 + 70.0, constant::WINDOW_HEIGHT * 3.0 / 4.0),
             _blink_timer         : 0.0,
+            _normal_mode         : true,
+            _option_text_scale   : constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0,
+            _input_interval      : 0.0
         };
     }
     
+    /// 开始游戏 / start game
+    fn start_game(&mut self,is_normal_mode:bool) {
+        self._start_game_flag = true;
+        self._normal_mode = is_normal_mode;
+    }
+    
+    fn apply_item(&mut self,ctx:&mut Context) {
+        match self._selected_item_index { 
+            0 | 1 => {
+                self.start_game(self._selected_item_index == 0);
+            },
+            2 => {
+                ctx.request_quit();
+            },
+            _ => {
+            }
+        }
+    }
+
     /// 设置当前的选择索引 / set the current selection index
     /// #Arguments
     /// * `move_offset` - 索引偏移 / index offset
-    // fn select_item(&mut self, move_offset:i8) {
-    //     let new_index = self._selected_item_index + move_offset;
-    //     
-    //     if new_index <= 0 {
-    //         self._selected_item_index = 0;
-    //     }
-    //     else if new_index >= MAX_ITEM_COUNT {
-    //         self._selected_item_index = 1;
-    //     }
-    //     else {
-    //         self._selected_item_index = new_index;
-    //     }
-    // }
-    
-    /// 开始游戏 / start game
-    fn start_game(&mut self){
-        self._start_game_flag = true;
+    fn select_item(&mut self, select_offset:i8) {
+        
+        let new_index = self._selected_item_index + select_offset;
+        if new_index < 0 {
+            self._selected_item_index = 0;
+        } 
+        else if new_index >= MAX_ITEM_COUNT {
+            self._selected_item_index = MAX_ITEM_COUNT;
+        }
+        else { 
+            self._selected_item_index = new_index;
+        }
+        
     }
     
     /// 绘制标题文本 / draw title text
@@ -70,35 +91,53 @@ impl ProcedureMainUI {
         );
     }
     
-    fn draw_operation_tip(&self,canvas: &mut Canvas){
-        let mut tip_text_1 = Text::new(format!("Enter - Start Game"));
-        tip_text_1.set_font(constant::FONT_NAME).set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0);
-        
-        let mut tip_text_2 = Text::new(format!("ESC - Exit Game"));
-        tip_text_2.set_font(constant::FONT_NAME).set_scale(constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0);
+    fn draw_option(&self,canvas: &mut Canvas,ctx: &mut Context) {
+        let mut normal_text_1 = Text::new(format!("- Normal Mode"));
+        normal_text_1.set_font(constant::FONT_NAME).set_scale(self._option_text_scale);
 
-        let mut tip_text_3 = Text::new(format!("up - rotate\ndown - move down\nleft/right - move"));
-        
+        let mut normal_text_2 = Text::new(format!("- Hard Mode"));
+        normal_text_2.set_font(constant::FONT_NAME).set_scale(self._option_text_scale);
+
+        let mut exit_text = Text::new(format!("- Exit Game"));
+        exit_text.set_font(constant::FONT_NAME).set_scale(self._option_text_scale);
+
         canvas.draw(
-            &tip_text_1,
+            &normal_text_1,
             graphics::DrawParam::new()
                 .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y))
                 .color(graphics::Color::GREEN)
         );
 
         canvas.draw(
-            &tip_text_2,
+            &normal_text_2,
             graphics::DrawParam::new()
                 .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y + 50.0))
                 .color(graphics::Color::GREEN)
         );
-        
+
         canvas.draw(
-            &tip_text_3,
+            &exit_text,
             graphics::DrawParam::new()
-                .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y - 300.0))
-                .color(graphics::Color::CYAN)
+                .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y + 100.0))
+                .color(graphics::Color::GREEN)
         );
+        
+        let option = graphics::Mesh::new_circle(
+            ctx,
+            graphics::DrawMode::fill(),
+            Vec2::new(self._tips_text_offset.x - 30.0,self._selected_item_index as f32 * 50.0 + self._tips_text_offset.y + 10.0),
+            10.0,
+            0.1,
+            graphics::Color::CYAN,
+        );
+        
+        if let Ok(opt) = option {
+            canvas.draw(
+                &opt,
+                graphics::DrawParam::new().dest(Vec2::new(0.0, 0.0))
+            );
+        }
+        
     }
 }
 
@@ -107,7 +146,7 @@ impl Drawable for ProcedureMainUI {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::from(constant::COLOR_R0G0B0A1));
         
         self.draw_title(&mut canvas);
-        self.draw_operation_tip(&mut canvas);
+        self.draw_option(&mut canvas,ctx);
         
         canvas.finish(ctx)?;
         return Ok(());
@@ -127,6 +166,9 @@ impl Tickable for ProcedureMainUI {
 impl TState for ProcedureMainUI{
     
     fn on_enter(&mut self, mut param:Box<dyn ProcedureParam>){
+        self._selected_item_index = 0;
+        self._start_game_flag = false;
+        self._normal_mode = true;
     }
     
     fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
@@ -135,29 +177,40 @@ impl TState for ProcedureMainUI{
             return Some(ProcedureEnum::Playing);
         }
         
-        if key_code.is_none() {
-            return Some(ProcedureEnum::MainUI);
-        }
-        
-        match key_code.unwrap() {
-            KeyCode::Return => {
-                self.start_game();
-            },
-            // KeyCode::Up => {
-            //     self.select_item(1);
-            // },
-            // KeyCode::Down => {
-            //     self.select_item(-1);
-            // },
-            KeyCode::Escape => {
-                ctx.request_quit();
+        if let Some(key_code) = key_code{
+            match key_code { 
+                KeyCode::Return => {
+                    self.apply_item(ctx);
+                },
+                KeyCode::Up | KeyCode::Down => {
+                    
+                    self._input_interval += delta_sec;
+                    if self._input_interval <= 0.1 {
+                        return Some(ProcedureEnum::MainUI);
+                    }
+                    
+                    #[cfg(feature = "debug")]{
+                        log("procedure_main_ui", "select item" ,LogLevelEnum::Info);
+                    }
+
+                    self._input_interval = 0.0;
+                    self.select_item(if key_code == KeyCode::Up {-1} else {1} );
+                },
+                KeyCode::Escape => {
+                    ctx.request_quit();
+                },
+                _ => {}
             }
-            _ => {},
         }
+        else{
+            //...
+        }
+
         return Some(ProcedureEnum::MainUI);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
+        
     }
     
     fn get_state(&self) -> ProcedureEnum {
