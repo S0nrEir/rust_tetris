@@ -1,6 +1,6 @@
 [package]
 name = "rust_tetris"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2021"
 authors = ["杨昊辰"]
 description = "A Tetris game written in Rust using ggez"
@@ -10,7 +10,7 @@ repository = "https://github.com/S0nrEir/rust_tetris"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ggez = "0.9.1"
+ggez = "0.9.0"
 num_enum = "0.7.3"
 colored = "2.0"
 rand = "0.8"
