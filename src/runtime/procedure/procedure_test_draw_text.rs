@@ -1,6 +1,7 @@
 ﻿use std::any::Any;
 use std::fmt::{Debug, Formatter};
 use ggez::{Context, GameResult};
+use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_state::TState;
 use crate::t_updatable::{Drawable, Tickable};
@@ -28,8 +29,8 @@ impl TState for ProcedureTestDrawText{
     fn on_enter(&mut self,param:Box<dyn ProcedureParam>){
         
     }
-    fn on_update(&mut self,ctx:&mut ggez::Context,key_code: Option<ggez::input::keyboard::KeyCode>,delta_sec:f32) -> Option<crate::define::enum_define::ProcedureEnum>{
-        return None;
+    fn on_update(&mut self,ctx:&mut ggez::Context,key_code: Option<ggez::input::keyboard::KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>){
+        return (Some(ProcedureEnum::TestDrawText), None);
     }
     fn on_leave(&mut self,param:Option<Box<dyn ProcedureParam>>){
         

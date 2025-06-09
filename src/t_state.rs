@@ -9,9 +9,9 @@ use crate::t_updatable::{Drawable, Tickable, Updatable};
 /// A simple state
 pub trait TState : Debug + Drawable + Tickable {
 
-    fn on_enter(&mut self,param:Box<dyn ProcedureParam>);
+    fn on_enter(&mut self , param : Box<dyn ProcedureParam>);
     // fn on_enter(&mut self,param:Option<Box<dyn ProcedureParam>>);
-    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>;
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>);
     fn on_leave(&mut self,param:Option<Box<dyn ProcedureParam>>);
     fn get_state(&self) -> ProcedureEnum;
 }

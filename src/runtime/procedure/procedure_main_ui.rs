@@ -10,6 +10,7 @@ use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::{Drawable, Tickable};
 use ggez::graphics::{Canvas, Text};
 use crate::constant;
+use crate::runtime::procedure::procedure_playing::ProcedurePlayingParam;
 
 const MAX_ITEM_COUNT:i8 = 2;
 
@@ -171,10 +172,13 @@ impl TState for ProcedureMainUI{
         self._normal_mode = true;
     }
     
-    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>){
         
         if self._start_game_flag {
-            return Some(ProcedureEnum::Playing);
+            let param = Box::new(ProcedurePlayingParam{
+                _is_normal_mode: self._normal_mode,
+            });
+            return (Some(ProcedureEnum::Playing),Some(param));
         }
         
         if let Some(key_code) = key_code{
@@ -186,7 +190,7 @@ impl TState for ProcedureMainUI{
                     
                     self._input_interval += delta_sec;
                     if self._input_interval <= 0.1 {
-                        return Some(ProcedureEnum::MainUI);
+                        return (Some(ProcedureEnum::MainUI),None);
                     }
                     
                     #[cfg(feature = "debug")]{
@@ -206,7 +210,7 @@ impl TState for ProcedureMainUI{
             //...
         }
 
-        return Some(ProcedureEnum::MainUI);
+        return (Some(ProcedureEnum::MainUI),None);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
@@ -220,13 +224,11 @@ impl TState for ProcedureMainUI{
 
 #[derive(Debug)]
 pub struct ProcedureMainUIParam{
-    pub _default_item_index : i32,
 }
 
 impl ProcedureMainUIParam {
     pub fn new() -> Self {
         return ProcedureMainUIParam{
-            _default_item_index : 0
         };
     }
 }

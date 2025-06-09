@@ -189,12 +189,12 @@ impl ProcedureComponent {
 }
 
 impl Updatable for ProcedureComponent {
-    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum> {
+    fn on_update(&mut self, ctx : &mut Context , key_code : Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>) {
         if let Some(curr_procedure) = &mut self._current_procedure{
             return curr_procedure.on_update(ctx,key_code,delta_sec);
         }
         else { 
-            return None;
+            return (None,None);
         }
     }
 }

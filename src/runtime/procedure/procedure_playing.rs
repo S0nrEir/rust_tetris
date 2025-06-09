@@ -14,6 +14,7 @@ use crate::t_updatable::{Drawable, Tickable};
 use crate::runtime::data::playing_data::PlayingData;
 use crate::tools::logger::*;
 use crate::runtime::procedure::playing_state_enum::PlayingStateEnum;
+use crate::runtime::procedure::procedure_over::ProcedureOverParam;
 use crate::tools::logger::LogLevelEnum::Fatal;
 
 ///游玩状态
@@ -28,6 +29,8 @@ pub  struct ProcedurePlaying{
     _curr_input     : Option<KeyCode>,
     /// 可处理输入的时间间隔 / time interval that can handle input
     _input_interval : f32,
+    /// tick轮询时间间隔 / tick polling time interval
+    _tick_interval : f32,
     // tick轮询时间 / tick polling time
     _delta_tick : f32,
     //绘制相关 / draw related
@@ -115,7 +118,21 @@ impl Tickable for ProcedurePlaying {
 }
 
 impl TState for ProcedurePlaying{
-    fn on_enter(&mut self , param : Box<dyn ProcedureParam>){
+    fn on_enter(&mut self, mut param: Box<dyn ProcedureParam>){
+        let param = param.as_any_mut().downcast_mut::<ProcedurePlayingParam>();
+        if param.is_none() {
+            #[cfg(feature = "debug")]{
+                log("ProcedurePlaying" , "on_enter,using default tick interval" , LogLevelEnum::Info);
+            }
+            self._tick_interval = constant::APP_MAIN_TICK_INTERVAL;
+        }
+        else {
+            let is_normal_mode = param.as_ref().unwrap()._is_normal_mode;
+            #[cfg(feature = "debug")]{
+                crate::tools::logger::log("ProcedurePlaying", &format!("on_enter,param is not none, is normal mode: {}", is_normal_mode), LogLevelEnum::Info);
+            }
+            self._tick_interval = if is_normal_mode { constant::APP_MAIN_TICK_INTERVAL } else { 0.5 };
+        }
         log_info_colored("ProcedurePlaying","enter",Color::Cyan);
         self._play_field.reset();
         self._play_field.init_tetrimino();
@@ -134,11 +151,11 @@ impl TState for ProcedurePlaying{
         self.switch_playing_state(PlayingStateEnum::Falling);
     }
 
-    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
+    fn on_update(&mut self,ctx:&mut Context,key_code: Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>){
 
         self._curr_input = key_code;
         self._input_interval += delta_sec;
-        let mut procedure_to_return : Option<ProcedureEnum> = None;
+        let mut procedure_to_return : (Option<ProcedureEnum>,Option<Box<dyn ProcedureParam>>) = (None,None);
         
         match self._curr_playing_state {
             
@@ -212,7 +229,7 @@ impl TState for ProcedurePlaying{
                     self._curr_input = None;
                 }
 
-                procedure_to_return = Some(ProcedureEnum::Playing);
+                procedure_to_return = (Some(ProcedureEnum::Playing),None);
             },//end match falling
             
             PlayingStateEnum::Performing => {
@@ -223,7 +240,7 @@ impl TState for ProcedurePlaying{
 
                 self._performing_duration += delta_sec;
                 if self._performing_duration >= constant::PLAYFIELD_PERFORMING_INTERVAL{
-                    procedure_to_return = Some(ProcedureEnum::Playing);
+                    procedure_to_return = (Some(ProcedureEnum::Playing),None);
                     self._performing_duration = 0.;
                     self._flash_time = 0.;
                     self._flash_color = graphics::Color::WHITE;
@@ -242,16 +259,19 @@ impl TState for ProcedurePlaying{
                         self._flash_time = 0.;
                     }
                 }
-                procedure_to_return = Some(ProcedureEnum::Playing);
+                procedure_to_return = (Some(ProcedureEnum::Playing),None);
             },//end match performing
             
             //结算
             PlayingStateEnum::Settlement =>{
                 if key_code.is_none(){
-                    procedure_to_return = Some(ProcedureEnum::Playing);
+                    procedure_to_return = (Some(ProcedureEnum::Playing),None);
                 }
                 else{
-                    procedure_to_return = Some(ProcedureEnum::Over);
+                    let param = Box::new(ProcedureOverParam{
+                        _score : self._player_data.get_score()
+                    });
+                    procedure_to_return = (Some(ProcedureEnum::Over), Some(param));
                 }
             }//end match settlement
             
@@ -261,7 +281,7 @@ impl TState for ProcedurePlaying{
         // main tick
         self._delta_tick += delta_sec;
 
-        if self._delta_tick >= constant::APP_MAIN_TICK_INTERVAL && 
+        if self._delta_tick >= self._tick_interval && 
             !self._is_paused && 
             self._curr_playing_state == PlayingStateEnum::Falling {
 
@@ -456,7 +476,8 @@ impl ProcedurePlaying {
                                  max_position,
                                  Vec2::new(min_position.x, max_position.y),
                                  min_position],
-            _is_paused : false
+            _is_paused : false,
+            _tick_interval : 0.0,
             
         };
     }
@@ -464,12 +485,10 @@ impl ProcedurePlaying {
 
 #[derive(Debug)]
 pub struct ProcedurePlayingParam{
+    pub _is_normal_mode : bool
 }
 
 impl ProcedurePlayingParam {
-    // pub fn new() -> Self{
-    //     return ProcedurePlayingParam{};
-    // }
 }
 
 impl ProcedureParam for ProcedurePlayingParam{

@@ -81,8 +81,8 @@ impl TState for ProcedureTestDrawBlock{
         temp.push(3);
     }
 
-    fn on_update(&mut self,ctx:&mut Context, key_code: Option<KeyCode>,delta_sec:f32) -> Option<ProcedureEnum>{
-        return Some(ProcedureEnum::TestDrawBlock);
+    fn on_update(&mut self,ctx:&mut Context, key_code: Option<KeyCode>,delta_sec:f32) -> (Option<ProcedureEnum>, Option<Box<dyn ProcedureParam>>){
+        return (Some(ProcedureEnum::TestDrawBlock),None);
         
     }
 

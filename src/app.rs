@@ -114,16 +114,25 @@ impl App {
         let old_procedure = self._procedure_component.curr_procedure();
         let new_procedure = self._procedure_component.on_update(ctx,key_code,delta_time as f32);
         
-        if !old_procedure.is_none() && !new_procedure.is_none() {
-            let old_procedure = old_procedure.unwrap();
-            let new_procedure = new_procedure.unwrap();
-            if old_procedure != new_procedure {
-                self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
+        if !old_procedure.is_none() && !new_procedure.0.is_none() {
+            if old_procedure.unwrap() != new_procedure.0.unwrap() {
+                self._procedure_component.switch(new_procedure.0.unwrap() , new_procedure.1.unwrap() , None );
             }
         }
         else{
             log("app.rs","current procedure is none",Warning);
         }
+        
+        // if !old_procedure.is_none() && !new_procedure.0.is_none() {
+        //     let old_procedure = old_procedure.unwrap();
+        //     let new_procedure = new_procedure.0.unwrap();
+        //     if old_procedure != new_procedure {
+        //         self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
+        //     }
+        // }
+        // else{
+        //     log("app.rs","current procedure is none",Warning);
+        // }
     }
 }
 
