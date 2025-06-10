@@ -1,6 +1,4 @@
-﻿use std::io::Lines;
-use std::num::ParseFloatError;
-use ggez::glam::{IVec2, Vec2};
+﻿use ggez::glam::{IVec2, Vec2};
 use ggez::graphics::Color;
 use crate::constant;
 use crate::define::enum_define::{PlayFieldColorEnum, TetriminoColorEnum, TetriminoTypeEnum};
@@ -23,19 +21,18 @@ impl PlayField {
     pub fn fall_all_floating_blocks(&mut self) {
         
         let mut has_changes = true;
-        // 重复直到没有方块可以继续下落
         while has_changes {
             has_changes = false;
-            for j in (0..constant::PLAY_FIELD_RAWS-1).rev() {
-                for i in 0..constant::PLAY_FIELD_COLS {
-                    if self._block_arr[i][j].is_occupied() && !self._block_arr[i][j+1].is_occupied() {
-                        let color = self._block_arr[i][j].color().clone();
+            for y in (0..constant::PLAY_FIELD_RAWS-1).rev() {
+                for x in 0..constant::PLAY_FIELD_COLS {
+                    if self._block_arr[x][y].is_occupied() && !self._block_arr[x][y+1].is_occupied() {
+                        let color = self._block_arr[x][y].color().clone();
 
-                        self._block_arr[i][j+1].set_occupied(1);
-                        self._block_arr[i][j+1].set_color(color);
+                        self._block_arr[x][y+1].set_occupied(1);
+                        self._block_arr[x][y+1].set_color(color);
 
-                        self._block_arr[i][j].set_occupied(0);
-                        self._block_arr[i][j].set_color(Color::BLACK);
+                        self._block_arr[x][y].set_occupied(0);
+                        self._block_arr[x][y].set_color(Color::BLACK);
 
                         has_changes = true;
                     }
@@ -53,23 +50,23 @@ impl PlayField {
     /// #Return
     /// * 是否生成成功，如果生成成功则更新grid area占位情况，失败则表示空间不足 / Whether the generation is successful, if the generation is successful, the occupancy situation of the grid area will be updated, and failure indicates insufficient space
     pub fn generate_new_tetrimino(&mut self) -> bool{
-        match self._curr_terimino{
-            
-            Some(ref mut curr_tetrimino ) => {
+        match self._curr_terimino {
+            Some(ref mut curr_tetrimino) => {
                 let gen_result = curr_tetrimino.gen_as_new(&self._block_arr);
-                let tetri_color=  curr_tetrimino.color();
+                let tetri_color = curr_tetrimino.color();
+                
                 if gen_result.0 {
-                    Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
+                    Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr, PlayFieldColorEnum::BlockColor(tetri_color));
+                } 
+                else {
+                    log("play_field.rs", &gen_result.1, LogLevelEnum::Error);
                 }
-                else{
-                    log("play_field.rs" , &gen_result.1 , LogLevelEnum::Error);
-                }
-                return gen_result.0;
+                return gen_result.0
             }
 
             None => {
-                log("play_field.rs","generate_new_tetrimino() ---> curr tetrimino is none",LogLevelEnum::Error);
-                return false;
+                log("play_field.rs", "generate_new_tetrimino() ---> curr tetrimino is none", LogLevelEnum::Error);
+                return false
             }
         }
     }
@@ -106,12 +103,12 @@ impl PlayField {
             Some(ref mut curr_tetrimino) => {
                 let tetri_color = curr_tetrimino.color();
                 //先检测下一格有没有可移动的格子
-                
                 Self::update_block_area(curr_tetrimino.block_actual_coord(), 0, &mut self._block_arr,PlayFieldColorEnum::Black);
                 if !curr_tetrimino.update_coord(IVec2::new(0,1)){
                     Self::update_block_area(curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
                     return (false,self.is_top_occupied());
                 }
+                
                 if Self::detect_tetrimino_collision(&self._block_arr, curr_tetrimino.block_actual_coord()) {
                     curr_tetrimino.update_coord(IVec2::new(0,-1));
                     Self::update_block_area(&curr_tetrimino.block_actual_coord(), 1, &mut self._block_arr,PlayFieldColorEnum::BlockColor(tetri_color));
@@ -271,7 +268,6 @@ impl PlayField {
     pub fn try_clear_line(&mut self) -> (u8,Vec<IVec2>){
 
         let mut cleared_cells : Vec<IVec2> = Vec::new();
-        let mut line_index = 0;
         let mut is_line_full = true;
         let mut cleared_lines = 0;
         let mut curr_col = 0;
@@ -402,7 +398,6 @@ impl PlayField {
     /// #Return
     /// * 是否有最顶层的方块坐标被放置了，是返回true / whether the topmost block coordinates are placed, return true
     fn top_occupied(block_area:&[[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS]) -> bool{
-        let len = block_area.len();
         for i in 0..constant::PLAY_FIELD_COLS {
             if block_area[i][0].is_occupied() {
                 return true;
@@ -443,26 +438,6 @@ impl PlayField {
             }
         }
         return false;
-    }
-    
-    /// 检查游玩区域的指定坐标位置是否有方块占位 / Check whether there is a block occupied at the specified coordinate position in the play area
-    /// #Arguments
-    /// * `block_area` - 方块区域 / block area
-    /// * `x` - x坐标 / x coordinate
-    /// * `y` - y坐标 / y coordinate
-    /// #Return
-    /// * 是否有方块占位，冲突返回true / whether there is a block occupied, return true if there is a conflict
-    fn detect_tetrimino_collision_one_cell(
-        block_area:&[[TetriGridCell;constant::PLAY_FIELD_RAWS];constant::PLAY_FIELD_COLS],
-        x : usize,
-        y : usize) -> bool
-    {
-        if x >= constant::PLAY_FIELD_COLS || y >= constant::PLAY_FIELD_RAWS {
-            log("play_field.rs","detecte_tetrimino_collision_one_cell() ---> coord out of range",LogLevelEnum::Error);
-            return false;
-        }
-        
-        return  block_area[x][y].is_occupied();
     }
     
     /// 检查给定方块的区域坐标是否与游玩区域冲突 / check whether the area coordinates of the given block conflict with the play area

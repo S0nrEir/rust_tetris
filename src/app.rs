@@ -8,7 +8,6 @@ use crate::define::enum_define::ProcedureEnum;
 use crate::runtime::input::InputComponent;
 use crate::runtime::procedure::{procedure_main_ui, procedure_over, procedure_playing, ProcedureComponent};
 use crate::runtime::procedure::procedure_main_ui::ProcedureMainUIParam;
-use crate::runtime::procedure::procedure_test_draw_block::{ProcedureTestDrawBlock, ProcedureTestDrawBlockParam};
 use crate::t_state::TState;
 use crate::t_updatable::{Updatable};
 use crate::tools::logger::{log, LogLevelEnum};
@@ -122,17 +121,6 @@ impl App {
         else{
             log("app.rs","current procedure is none",Warning);
         }
-        
-        // if !old_procedure.is_none() && !new_procedure.0.is_none() {
-        //     let old_procedure = old_procedure.unwrap();
-        //     let new_procedure = new_procedure.0.unwrap();
-        //     if old_procedure != new_procedure {
-        //         self._procedure_component.switch(new_procedure,Box::new(ProcedureMainUIParam::new()),None);
-        //     }
-        // }
-        // else{
-        //     log("app.rs","current procedure is none",Warning);
-        // }
     }
 }
 

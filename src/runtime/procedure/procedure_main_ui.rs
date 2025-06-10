@@ -4,13 +4,15 @@ use ggez::{Context, GameResult, graphics};
 use ggez::glam::Vec2;
 use crate::t_state::TState;
 use crate::define::enum_define::ProcedureEnum;
-use crate::tools::logger::{log, LogLevelEnum};
-use ggez::input::keyboard::{KeyCode, KeyInput};
+use ggez::input::keyboard::{KeyCode};
 use crate::runtime::procedure::t_procedure_param::ProcedureParam;
 use crate::t_updatable::{Drawable, Tickable};
 use ggez::graphics::{Canvas, Text};
 use crate::constant;
 use crate::runtime::procedure::procedure_playing::ProcedurePlayingParam;
+
+#[cfg(feature = "debug")]
+use crate::tools::logger::{log, LogLevelEnum};
 
 const MAX_ITEM_COUNT:i8 = 2;
 
@@ -23,14 +25,12 @@ pub struct ProcedureMainUI{
     _title_text_offset   : Vec2,
     _start_game_flag     : bool,
     _tips_text_offset    : Vec2,
-    _blink_timer         : f32,
     _normal_mode         : bool,
     _option_text_scale   : f32,
     _input_interval      : f32,
 }
 
 impl ProcedureMainUI {
-    ///constructor
     pub fn new() -> Self {
         return ProcedureMainUI{
             _selected_item_index : 0,
@@ -38,7 +38,6 @@ impl ProcedureMainUI {
             _title_text_offset   : Vec2::new(-100., 0.),
             _start_game_flag     : false,
             _tips_text_offset    : Vec2::new(constant::WINDOW_WIDTH / 4.0 + 70.0, constant::WINDOW_HEIGHT * 3.0 / 4.0),
-            _blink_timer         : 0.0,
             _normal_mode         : true,
             _option_text_scale   : constant::PROC_MAIN_UI_ITEM_TEXT_SCALE / 3.0,
             _input_interval      : 0.0
@@ -93,31 +92,22 @@ impl ProcedureMainUI {
     }
     
     fn draw_option(&self,canvas: &mut Canvas,ctx: &mut Context) {
-        let mut normal_text_1 = Text::new(format!("- Normal Mode"));
-        normal_text_1.set_font(constant::FONT_NAME).set_scale(self._option_text_scale);
-
-        let mut normal_text_2 = Text::new(format!("- Hard Mode"));
-        normal_text_2.set_font(constant::FONT_NAME).set_scale(self._option_text_scale);
-
-        let mut exit_text = Text::new(format!("- Exit Game"));
-        exit_text.set_font(constant::FONT_NAME).set_scale(self._option_text_scale);
-
         canvas.draw(
-            &normal_text_1,
+            Text::new(format!("- Normal Mode")).set_font(constant::FONT_NAME).set_scale(self._option_text_scale),
             graphics::DrawParam::new()
                 .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y))
                 .color(graphics::Color::GREEN)
         );
 
         canvas.draw(
-            &normal_text_2,
+            Text::new(format!("- Hard Mode")).set_font(constant::FONT_NAME).set_scale(self._option_text_scale),
             graphics::DrawParam::new()
                 .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y + 50.0))
                 .color(graphics::Color::GREEN)
         );
 
         canvas.draw(
-            &exit_text,
+            Text::new(format!("- Exit Game")).set_font(constant::FONT_NAME).set_scale(self._option_text_scale),
             graphics::DrawParam::new()
                 .dest(Vec2::new(self._tips_text_offset.x, self._tips_text_offset.y + 100.0))
                 .color(graphics::Color::GREEN)
@@ -156,10 +146,6 @@ impl Drawable for ProcedureMainUI {
 
 impl Tickable for ProcedureMainUI {
     fn on_tick(&mut self, ctx: &mut Context, delta_time: f32, interval: f32) {
-        self._blink_timer += delta_time;
-        if self._blink_timer > std::f32::consts::PI * 2.0 {
-            self._blink_timer -= std::f32::consts::PI * 2.0;
-        }
     }
 }
 
@@ -182,10 +168,12 @@ impl TState for ProcedureMainUI{
         }
         
         if let Some(key_code) = key_code{
-            match key_code { 
+            match key_code {
+                
                 KeyCode::Return => {
                     self.apply_item(ctx);
                 },
+                
                 KeyCode::Up | KeyCode::Down => {
                     
                     self._input_interval += delta_sec;
@@ -200,21 +188,18 @@ impl TState for ProcedureMainUI{
                     self._input_interval = 0.0;
                     self.select_item(if key_code == KeyCode::Up {-1} else {1} );
                 },
+                
                 KeyCode::Escape => {
                     ctx.request_quit();
                 },
+                
                 _ => {}
             }
         }
-        else{
-            //...
-        }
-
         return (Some(ProcedureEnum::MainUI),None);
     }
 
     fn on_leave(&mut self,_param:Option<Box<dyn ProcedureParam>>) {
-        
     }
     
     fn get_state(&self) -> ProcedureEnum {

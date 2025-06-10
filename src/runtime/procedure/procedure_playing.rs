@@ -193,9 +193,6 @@ impl TState for ProcedurePlaying{
                                     if !self._play_field.generate_new_tetrimino() && self._play_field.is_top_occupied() {
                                         self.settlement();
                                     }
-                                    else{
-                                        // procedure_to_return = Some(ProcedureEnum::Playing);
-                                    }
                                 }
                                 //未到达顶部，但有消除
                                 else{
@@ -205,18 +202,22 @@ impl TState for ProcedurePlaying{
                                 }
                             }
                         },//end match down
+                        
                         //左右移动
                         KeyCode::Left | KeyCode::Right | KeyCode::A | KeyCode::D => {
                             self._play_field.try_horizontal_move_tetrimino(if actual_key_code == KeyCode::Right || actual_key_code == KeyCode::D {1} else {-1});
                         },
+                        
                         //旋转
                         KeyCode::Up | KeyCode::W => {
                             self._play_field.try_rotate_tetrimino(true);
                         }
+                        
                         //退出
                         KeyCode::Escape => {
                             ctx.request_quit();
                         }
+                        
                         KeyCode::Pause => {
                             #[cfg(feature = "debug")]{
                                 self._is_paused = !self._is_paused;
@@ -323,10 +324,6 @@ impl ProcedurePlaying {
             PlayingStateEnum::Falling => {
             },
             PlayingStateEnum::Performing => {
-                // self._performing_duration = 0.;
-                // self._flash_time = 0.;
-                // self._flash_color = graphics::Color::WHITE;
-                // self._performing_coords.clear();
             },
             PlayingStateEnum::Settlement => {
             },
